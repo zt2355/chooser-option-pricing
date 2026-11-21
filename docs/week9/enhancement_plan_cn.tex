@@ -1,0 +1,137 @@
+% 第 9 周：Enhancement 阶段调研与四周规划（发导师 review）—— 编译方式：XeLaTeX
+\documentclass[11pt]{ctexart}
+\usepackage[a4paper, margin=2.05cm]{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\setlist{nosep}
+\usepackage{parskip}
+\usepackage[hidelinks]{hyperref}
+
+\title{\textbf{Enhancement 阶段调研与四周规划}\\
+\large Advanced Chooser Option Pricing Model · 第 9--12 周}
+\author{佟铸城（Zhucheng Tong）}
+\date{2026 年 9 月 12 日 \quad（导师 review 后确认版）}
+
+\begin{document}
+\maketitle
+
+\section{任务理解与现状}
+
+导师给出的三个方向：（1）把数据集扩充到全市场，提高模型通用性；（2）接入 SQL 与 Redis，让整个工具在线运行而非离线；（3）测量并优化从前端仪表板到后端数据源的全流程时间与空间占用。三者合起来，是把前八周的“研究原型”改造成一个“可持续运行的工程系统”。
+
+当前系统的状态是这次改造的起点：
+\begin{itemize}
+  \item \textbf{数据}：只有 JPM 一只股票，加 S\&P 500、VIX、国债与 FRED 利率；2018 年至今日频，18 个特征。
+  \item \textbf{存储与更新}：CSV / parquet 文件；GitHub Actions 每周五收盘后自动采集、预处理、提交。
+  \item \textbf{服务与前端}：定价逻辑全部在独立服务层 \texttt{src/tool/pricing\_service.py}（主定价 EWMA 锚定 BSM，ML 修正价作参考），Streamlit 前端是薄壳，直接读本地文件。
+  \item \textbf{模型}：6 个部署模型（joblib），每次请求时加载；SHAP 等重计算在线执行。
+\end{itemize}
+这个结构对改造是有利的：服务层与 UI 已经分离，改造集中在数据访问层和调度层，定价与审计代码可以原样保留。
+
+\section{调研结论}
+
+\subsection{方向一：数据集扩充到全市场}
+
+\textbf{做什么}：对每只股票重跑现有流水线（日线、股息、18 个特征、每日 ATM 1 年期 chooser 定价），并把机器学习从单只股票的时间序列改成“股票 $\times$ 日期”的面板数据。这直接回应第 6 周负结果的归因之一“训练数据只含约一个半波动率状态周期”：截面样本放大几百倍后，锚定残差学习路线可以在更充分的数据上重新检验。
+
+\begin{minipage}{\linewidth}
+\textbf{股票池分层}：
+\begin{center}\small
+\begin{tabular}{llll}
+\toprule
+层级 & 股票数 & 7 年日线行数（约） & 定位 \\
+\midrule
+S\&P 500 成分股 & 500 & 88 万 & 第 10 周完成，全链路跑通 \\
+Russell 3000 成分股 & 3000 & 530 万 & 第 11 周完成 \\
+全美股（含退市） & 7000 以上 & 1200 万以上 & 不作本阶段目标（导师确认） \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{minipage}
+
+使用历史成分股而非当前成分股，以避免生存偏差；退市股票需要退市日与退市收益。导师确认的优先级：\textbf{先把指数成分股做完并让整个链路跑通，不在数据收集环节停留}。
+
+\textbf{数据源对比}：
+\begin{center}\small
+\begin{tabular}{p{2.6cm}p{3.2cm}p{3.6cm}p{5.2cm}}
+\toprule
+来源 & 覆盖 & 费用与限制 & 评价 \\
+\midrule
+yfinance & 活跃股票全历史；退市股票无 & 免费；有限速；无官方保障 & 主源：批量下载 S\&P 500 与 Russell 3000 \\
+Stooq / Nasdaq 官方日线 / 自写爬虫 & 活跃股票日线 & 免费；各有限流或反爬 & 第二源与增量日更的备选，多源轮换 \\
+Alpha Vantage / efinance 等 & 美股部分覆盖 & 免费档限流明显 & 备用与交叉校验 \\
+Tiingo / EODHD（付费） & 全美股含部分退市 & 约每月 10--20 美元 & 本阶段不采用（导师倾向免费源与自写爬虫） \\
+WRDS CRSP（学术库） & 全美股 1926 年至 2026-06，含退市与复权 & 学校账号免费（有效期至 2027-05-31）；仅限学术研究，禁止再分发；数据滞后数月 & 历史训练集与回测的最佳来源；不能作在线数据源 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{数据源策略（导师确认）}：日更增量很小，走免费 API 与自写爬虫的组合；每个源都会限流，用增量拉取（只拉上一交易日之后的行）、并发加指数退避、多源轮换与失败重试来应对；历史全量则用 WRDS CRSP 一次拉齐（按许可仅本机使用，不进交付物）。
+
+\textbf{代码改造要点}：预处理改为按 ticker 分组的向量化处理；个股相关特征（beta、与 VIX 的相关性等）改为逐股计算；股息缺失、拆股、停牌处理；净化时序切分改为按日期切、跨股票同步切，防止泄漏；锚定目标与 walk-forward 协议沿用。
+
+\subsection{方向二：SQL 与 Redis，在线运行}
+
+\textbf{做什么}：数据从文件迁入数据库，前端读库与缓存而非文件，由调度器定时拉数据、重算价格、刷新缓存，服务持续运行。
+
+\textbf{选型}：
+\begin{itemize}
+  \item \textbf{PostgreSQL} 作持久层：存原始行情、特征、利率、每日报价（ticker、日期、$S$、$\sigma$、$r$、主定价、ML 参考价、误差带）、情景表、模型登记表。Python 侧用 SQLAlchemy。
+  \item \textbf{Redis} 作热数据层：最新报价、情景表、压力面按 ticker 缓存并设过期时间；前端先查 Redis，未命中再查 PostgreSQL；同时可作任务队列。
+  \item \textbf{APScheduler} 作调度：每个交易日收盘后执行“采集 $\to$ 预处理 $\to$ 定价 $\to$ 写库 $\to$ 刷新缓存”；GitHub Actions 保留为备份。
+  \item \textbf{Docker Compose} 一键启动 PostgreSQL、Redis、调度器与 Streamlit 四个容器；本机先跑通，若需公网访问再迁云主机。
+\end{itemize}
+
+\textbf{“在线”的定义（导师确认）}：工具需要\textbf{具备}持续在线运行的能力，而不是真的长期跑着或做长时间压力测试。因此本阶段目标是：内网 Docker 环境完整搭好，一条命令可启动全部服务，调度器能按交易日自动更新，演示时启动运行数日验证即可；不做云主机公网部署。
+
+\subsection{方向三：全流程性能优化}
+
+\textbf{做什么}：定义一组基准测试，优化前先测一遍留档，剖析瓶颈，优化后再测，给出前后对比。\textbf{指标口径（导师确认）}：只看相对提升（优化后相对优化前的倍数或百分比），不设绝对秒数目标；报告注明硬件环境，区分硬件相关与硬件无关的优化。
+
+\textbf{基准测试清单}：冷启动时间；单次报价延迟；情景表与压力面计算；单只股票数据刷新；全市场批量日更定价（这是数据扩充后的主要瓶颈）；仪表板各页签的首屏时间；各环节内存峰值。
+
+\textbf{工具链}：cProfile 与 snakeviz（函数级耗时）、py-spy（对运行中的 Streamlit 进程采样）、tracemalloc 与 memory\_profiler（内存）、PostgreSQL 的 EXPLAIN ANALYZE（查询计划）、pytest-benchmark（回归基准）。
+
+\textbf{预期优化点}：BSM 定价改 numpy 向量化批量计算；模型与数据只加载一次（Streamlit 缓存装饰器）；数据刷新改增量而非全量；热数据放 Redis；数据类型降精度；SHAP 等重计算移到离线任务；数据库索引与分区。
+
+\section{四周排期}
+
+按每周二交付的既有节奏排定，交付物沿用“代码 zip + 报告 PDF”格式，周报与学习报告继续迭代。\textbf{工程与理论并行（导师要求）}：每周都分出理论线份额，四周累计不少于三分之一的时间用于理论部分（面板数据上的机器学习重训、GARCH 锚定、隐含波动率路线的初步检验）。
+
+\begin{center}\small
+\begin{tabular}{p{1.3cm}p{1.8cm}p{4.5cm}p{3.5cm}p{3.5cm}}
+\toprule
+周 & 交付日 & 工程线 & 理论线 & 交付物 \\
+\midrule
+第 9 周 & 9 月 22 日（周二） & 架构设计；PostgreSQL 与 Redis 用 Docker Compose 跑通；JPM 单票采集、入库、定价、缓存、前端读库全链路打通；性能基线（优化前）留档 & 面板数据集设计（按日期切的净化切分、逐股特征定义）；GARCH(1,1) 锚定在 JPM 上与 EWMA 锚对照 & 架构文档；表结构；docker-compose 与迁移脚本；性能基线报告 \\
+\addlinespace
+第 10 周 & 9 月 29 日（周二） & 股票池扩到 S\&P 500 历史成分股，多源轮换与限流应对；调度器上线，每日收盘后自动更新；前端加股票选择与概览页签 & S\&P 500 面板上锚定残差 ML 第一轮（walk-forward、测试集封存）；逐股 GARCH 锚批量拟合 & 多股票流水线；调度器；前端新页签；数据质量审计 \\
+\addlinespace
+第 11 周 & 10 月 6 日（周二） & 股票池扩到 Russell 3000；全流程性能剖析，瓶颈清单 & 面板 ML 测试集开封一次并与 EWMA / GARCH 双基线比较；SHAP；隐含波动率路线用 OptionMetrics 做初步检验 & 面板 ML 评估报告；性能剖析报告 \\
+\addlinespace
+第 12 周 & 10 月 13 日（周二） & 实施优化并复测，给出相对提升；部署与运维说明 & 理论部分成文，并入结项报告 & 性能优化报告；\textbf{完整结项报告}（在原最终报告上续写）；演示视频 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{最终交付形式（导师确认）}：一份完整的结项报告，在第 8 周最终报告的原文件上继续往后增加后四周的内容并整体丰富，而不是另起一份。
+
+\textbf{每周固定自检}沿用前八周的套餐：确定性重跑逐位比对、审计脚本断言、依赖扫描、打包泄露检查、报告数字回查；本阶段新增“数据库与文件双写一致性”和“缓存与库一致性”两项断言。
+
+\section{风险与备选}
+
+\begin{itemize}
+  \item \textbf{数据源限速或不稳定}：增量拉取加多源轮换；若 Russell 3000 日更仍被限流，退回“历史全量用学术库、日更只覆盖 S\&P 500”的方案，链路完整性优先。
+  \item \textbf{批量日更超时}：向量化定价后 3000 只股票的 BSM 闭式解在秒级完成，瓶颈在数据拉取；用增量更新与并发下载解决，仍超时则分批调度。
+  \item \textbf{面板 ML 仍不胜基线}：与第 6 周一样如实报告，工具主定价维持 EWMA 锚定 BSM；GARCH 锚作为第二个基线候选。
+  \item \textbf{四周工作量偏重}：优先级为方向二（骨架）$>$ 方向一（灌数据）$>$ 方向三（体检）；理论线份额受保护，工程延误时压缩的是 Russell 3000 的覆盖而不是理论部分。每周都有可独立交付的成果。
+\end{itemize}
+
+\section{参考资料}
+
+\textbf{工程}：PostgreSQL、Redis、SQLAlchemy、APScheduler、Docker Compose、Streamlit 官方文档；py-spy、cProfile、tracemalloc 文档。
+
+\textbf{建模}（用于理论线的面板 ML 与锚定升级）：STAT 5263 时间序列讲义（GARCH、状态空间模型）；STAT 5265 随机分析讲义（隐含波动率、Dupire 局部波动率、随机波动率模型）；MATH 5030 数值金融讲义（向量化与蒙特卡洛方差缩减、SABR、最小二乘蒙特卡洛）；Hull《Options, Futures, and Other Derivatives》第 11 版第 20、23、26、27 章。
+
+\end{document}

@@ -1,0 +1,585 @@
+{
+  "tag": "after",
+  "rss_mb": {
+    "start": 108.8,
+    "after_imports": 169.1,
+    "after_service": 210.8,
+    "after_dashboard": 286.2
+  },
+  "L3_latest_row_query": {
+    "execution_ms": 795.0,
+    "planning_ms": 0.23,
+    "node": "Unique",
+    "rows": 1500,
+    "shared_hit_blocks": 147554,
+    "shared_read_blocks": 111292,
+    "plan_head": [
+      "Unique rows=1500 t=783.2ms",
+      "  Index Scan rows=2771160 t=691.4ms idx=ix_features_ticker_date_desc"
+    ]
+  },
+  "L3_tail_read_JPM": {
+    "execution_ms": 0.2,
+    "planning_ms": 0.06,
+    "node": "Limit",
+    "rows": 760,
+    "shared_hit_blocks": 48,
+    "shared_read_blocks": 47,
+    "plan_head": [
+      "Limit rows=760 t=0.2ms",
+      "  Index Scan rows=760 t=0.1ms idx=ix_features_ticker_date_desc"
+    ]
+  },
+  "L3_prices_tail_JPM": {
+    "execution_ms": 0.1,
+    "planning_ms": 0.1,
+    "node": "Limit",
+    "rows": 760,
+    "shared_hit_blocks": 16,
+    "shared_read_blocks": 24,
+    "plan_head": [
+      "Limit rows=760 t=0.1ms",
+      "  Index Scan rows=760 t=0.1ms idx=prices_daily_pkey"
+    ]
+  },
+  "L3_universe_quotes_query": {
+    "execution_ms": 2.0,
+    "planning_ms": 0.25,
+    "node": "Unique",
+    "rows": 1496,
+    "shared_hit_blocks": 6,
+    "shared_read_blocks": 99,
+    "plan_head": [
+      "Unique rows=1496 t=2.0ms",
+      "  Sort rows=2076 t=1.9ms",
+      "    Hash Join rows=2076 t=0.7ms",
+      "      Seq Scan rows=2076 t=0.2ms",
+      "      Hash rows=1594 t=0.2ms"
+    ]
+  },
+  "L3_table_sizes": [
+    {
+      "relname": "features_daily",
+      "total": "964 MB",
+      "table": "685 MB",
+      "rows": 3149824
+    },
+    {
+      "relname": "prices_daily",
+      "total": "590 MB",
+      "table": "342 MB",
+      "rows": 3151899
+    },
+    {
+      "relname": "scenarios_daily",
+      "total": "3864 kB",
+      "table": "2440 kB",
+      "rows": 16608
+    },
+    {
+      "relname": "index_daily",
+      "total": "1904 kB",
+      "table": "1312 kB",
+      "rows": 12
+    },
+    {
+      "relname": "quotes_daily",
+      "total": "808 kB",
+      "table": "656 kB",
+      "rows": 2076
+    },
+    {
+      "relname": "features_latest",
+      "total": "688 kB",
+      "table": "576 kB",
+      "rows": 1496
+    },
+    {
+      "relname": "rates_daily",
+      "total": "456 kB",
+      "table": "304 kB",
+      "rows": 4
+    },
+    {
+      "relname": "securities",
+      "total": "240 kB",
+      "table": "136 kB",
+      "rows": 1594
+    },
+    {
+      "relname": "index_membership",
+      "total": "104 kB",
+      "table": "40 kB",
+      "rows": 670
+    },
+    {
+      "relname": "pipeline_runs",
+      "total": "64 kB",
+      "table": "16 kB",
+      "rows": 42
+    },
+    {
+      "relname": "model_registry",
+      "total": "32 kB",
+      "table": "8192 bytes",
+      "rows": 0
+    }
+  ],
+  "L3_indexes": [
+    "features_daily_pkey",
+    "ix_features_date",
+    "ix_features_ticker_date_desc"
+  ],
+  "L3_db_size_mb": 1570.2,
+  "L2_quote_universe": {
+    "median_ms": 23.5,
+    "peak_mb": 2.5,
+    "buckets": {
+      "sqlalchemy/psycopg2": 0.139,
+      "pandas": 0.234,
+      "numpy/scipy": 0.025,
+      "sklearn": 0.009,
+      "src": 0.015,
+      "other": 0.577,
+      "total_s": 0.056
+    },
+    "top": [
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.056,
+        "func": "analysis/week11/01_profile_stack.py:148(<lambda>)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.056,
+        "func": "src/tool/pricing_service.py:262(quote_universe)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.046,
+        "func": "src/db/repository.py:306(read_latest_features)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.043,
+        "func": "src/db/repository.py:213(_read)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.002,
+        "cumtime": 0.041,
+        "func": "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/io/sql.py:570(read_sql)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.039,
+        "func": "brary/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/io/sql.py:1779(read_query)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.018,
+        "func": "meworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/sqlalchemy/engine/result.py:1368(fetchall)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.001,
+        "cumtime": 0.018,
+        "func": "ameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/sqlalchemy/engine/result.py:582(_allrows)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.018,
+        "func": "s/Python.framework/Versions/3.13/lib/python3.13/site-packages/sqlalchemy/engine/cursor.py:2260(_fetchall_impl)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.018,
+        "func": "meworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/sqlalchemy/engine/cursor.py:1195(fetchall)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.017,
+        "cumtime": 0.017,
+        "func": "{method 'fetchall' of 'psycopg2.extensions.cursor' objects}"
+      },
+      {
+        "ncalls": "2",
+        "tottime": 0.0,
+        "cumtime": 0.016,
+        "func": "on.framework/Versions/3.13/lib/python3.13/site-packages/sqlalchemy/sql/elements.py:517(_execute_on_connection)"
+      }
+    ],
+    "tickers": 1496
+  },
+  "L2_scenario_universe": {
+    "median_ms": 2.8,
+    "peak_mb": 1.2,
+    "buckets": {
+      "sqlalchemy/psycopg2": 0.0,
+      "pandas": 0.433,
+      "numpy/scipy": 0.245,
+      "sklearn": 0.0,
+      "src": 0.087,
+      "other": 0.235,
+      "total_s": 0.012
+    },
+    "top": [
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.012,
+        "func": "analysis/week11/01_profile_stack.py:151(<lambda>)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.012,
+        "func": "src/tool/pricing_service.py:307(scenario_universe)"
+      },
+      {
+        "ncalls": "8",
+        "tottime": 0.0,
+        "cumtime": 0.006,
+        "func": "rary/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/frame.py:694(__init__)"
+      },
+      {
+        "ncalls": "8",
+        "tottime": 0.0,
+        "cumtime": 0.006,
+        "func": "on.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/internals/construction.py:423(dict_to_mgr)"
+      },
+      {
+        "ncalls": "8",
+        "tottime": 0.0,
+        "cumtime": 0.004,
+        "func": "n.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/internals/construction.py:96(arrays_to_mgr)"
+      },
+      {
+        "ncalls": "8",
+        "tottime": 0.0,
+        "cumtime": 0.004,
+        "func": "src/models/chooser.py:19(chooser_closed_form)"
+      },
+      {
+        "ncalls": "32",
+        "tottime": 0.001,
+        "cumtime": 0.003,
+        "func": "rks/Python.framework/Versions/3.13/lib/python3.13/site-packages/scipy/stats/_distn_infrastructure.py:2121(cdf)"
+      },
+      {
+        "ncalls": "8",
+        "tottime": 0.0,
+        "cumtime": 0.002,
+        "func": "3/lib/python3.13/site-packages/pandas/core/internals/managers.py:2121(create_block_manager_from_column_arrays)"
+      },
+      {
+        "ncalls": "8",
+        "tottime": 0.0,
+        "cumtime": 0.002,
+        "func": "src/models/bsm.py:14(bs_call)"
+      },
+      {
+        "ncalls": "8",
+        "tottime": 0.0,
+        "cumtime": 0.002,
+        "func": "src/models/bsm.py:19(bs_put)"
+      },
+      {
+        "ncalls": "8",
+        "tottime": 0.0,
+        "cumtime": 0.001,
+        "func": "thon.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/internals/managers.py:2190(_form_blocks)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.001,
+        "func": "ameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/reshape/concat.py:157(concat)"
+      }
+    ]
+  },
+  "L2_load_state_one_row": {
+    "median_ms": 2.6,
+    "peak_mb": 0.2,
+    "buckets": {
+      "sqlalchemy/psycopg2": 0.105,
+      "pandas": 0.517,
+      "numpy/scipy": 0.009,
+      "sklearn": 0.0,
+      "src": 0.009,
+      "other": 0.361,
+      "total_s": 0.008
+    },
+    "top": [
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.008,
+        "func": "analysis/week11/01_profile_stack.py:153(<lambda>)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.008,
+        "func": "src/tool/pricing_service.py:130(load_market_state)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.007,
+        "func": "src/db/repository.py:306(read_latest_features)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.005,
+        "func": "src/db/repository.py:213(_read)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.004,
+        "func": "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/io/sql.py:570(read_sql)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.004,
+        "func": "brary/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/io/sql.py:1779(read_query)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.002,
+        "func": "rary/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/io/sql.py:194(_wrap_result)"
+      },
+      {
+        "ncalls": "2",
+        "tottime": 0.0,
+        "cumtime": 0.002,
+        "func": "on.framework/Versions/3.13/lib/python3.13/site-packages/sqlalchemy/sql/elements.py:517(_execute_on_connection)"
+      },
+      {
+        "ncalls": "2",
+        "tottime": 0.0,
+        "cumtime": 0.002,
+        "func": "on.framework/Versions/3.13/lib/python3.13/site-packages/sqlalchemy/engine/base.py:1593(_execute_clauseelement)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.002,
+        "func": "Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/io/sql.py:160(_convert_arrays_to_dataframe)"
+      },
+      {
+        "ncalls": "2",
+        "tottime": 0.0,
+        "cumtime": 0.002,
+        "func": "s/Python.framework/Versions/3.13/lib/python3.13/site-packages/sqlalchemy/engine/base.py:1793(_execute_context)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.001,
+        "func": "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/io/sql.py:1655(execute)"
+      }
+    ]
+  },
+  "L1_dashboard_first_render": {
+    "median_ms": 514.3,
+    "peak_mb": 3.0,
+    "buckets": {
+      "sqlalchemy/psycopg2": 0.001,
+      "pandas": 0.028,
+      "numpy/scipy": 0.003,
+      "sklearn": 0.0,
+      "src": 0.0,
+      "other": 0.969,
+      "total_s": 3.446
+    },
+    "top": [
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 3.446,
+        "func": "analysis/week11/01_profile_stack.py:159(render)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 3.445,
+        "func": "ameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/streamlit/testing/v1/app_test.py:442(run)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 3.445,
+        "func": "rks/Python.framework/Versions/3.13/lib/python3.13/site-packages/streamlit/testing/v1/element_tree.py:2519(run)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 3.445,
+        "func": "meworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/streamlit/testing/v1/app_test.py:349(_run)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 2.652,
+        "func": "ib/python3.13/site-packages/streamlit/components/v2/component_manager.py:307(discover_and_register_components)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 2.652,
+        "func": "ns/3.13/lib/python3.13/site-packages/streamlit/components/v2/manifest_scanner.py:546(scan_component_manifests)"
+      },
+      {
+        "ncalls": "672/670",
+        "tottime": 0.003,
+        "cumtime": 2.481,
+        "func": "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/metadata/__init__.py:448(metadata)"
+      },
+      {
+        "ncalls": "166",
+        "tottime": 0.004,
+        "cumtime": 2.468,
+        "func": "thon3.13/site-packages/streamlit/components/v2/manifest_scanner.py:171(_is_likely_streamlit_component_package)"
+      },
+      {
+        "ncalls": "672",
+        "tottime": 0.001,
+        "cumtime": 2.341,
+        "func": "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/email/__init__.py:31(message_from_string)"
+      },
+      {
+        "ncalls": "672",
+        "tottime": 0.003,
+        "cumtime": 2.34,
+        "func": "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/email/parser.py:56(parsestr)"
+      },
+      {
+        "ncalls": "672",
+        "tottime": 0.003,
+        "cumtime": 2.337,
+        "func": "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/email/parser.py:41(parse)"
+      },
+      {
+        "ncalls": "1297",
+        "tottime": 0.001,
+        "cumtime": 2.275,
+        "func": "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/email/feedparser.py:173(feed)"
+      }
+    ],
+    "top_src": [
+      {
+        "ncalls": "1",
+        "tottime": 0.001,
+        "cumtime": 0.754,
+        "func": "app/streamlit_app.py:1(<module>)"
+      },
+      {
+        "ncalls": "2",
+        "tottime": 0.0,
+        "cumtime": 0.014,
+        "func": "src/db/repository.py:213(_read)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.012,
+        "func": "src/db/repository.py:399(read_quotes)"
+      },
+      {
+        "ncalls": "16",
+        "tottime": 0.0,
+        "cumtime": 0.008,
+        "func": "src/tool/pricing_service.py:153(price_chooser)"
+      },
+      {
+        "ncalls": "16",
+        "tottime": 0.0,
+        "cumtime": 0.008,
+        "func": "src/models/chooser.py:19(chooser_closed_form)"
+      },
+      {
+        "ncalls": "11",
+        "tottime": 0.0,
+        "cumtime": 0.007,
+        "func": "app/streamlit_app.py:101(<lambda>)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.006,
+        "func": "src/db/repository.py:408(read_runs)"
+      },
+      {
+        "ncalls": "1",
+        "tottime": 0.0,
+        "cumtime": 0.005,
+        "func": "src/db/repository.py:421(table_counts)"
+      },
+      {
+        "ncalls": "16",
+        "tottime": 0.0,
+        "cumtime": 0.004,
+        "func": "src/models/bsm.py:14(bs_call)"
+      },
+      {
+        "ncalls": "16",
+        "tottime": 0.0,
+        "cumtime": 0.004,
+        "func": "src/models/bsm.py:19(bs_put)"
+      }
+    ]
+  },
+  "L1_cold_import_ms": {
+    "src.tool.pricing_service": 528.5,
+    "torch": 621.0,
+    "shap": 1428.1,
+    "streamlit": 141.9
+  },
+  "L4_daily_pipeline": {
+    "run_id": 52,
+    "tickers": 1517,
+    "total_s": 59.5,
+    "stages": {
+      "market": 1.902,
+      "fetch+prices": 19.192,
+      "features": 36.395,
+      "quotes": 1.051,
+      "cache": 0.431
+    },
+    "network_share": 0.354,
+    "features_share": 0.611
+  },
+  "L5_space": {
+    "db_size_mb": 1570.2,
+    "redis": {
+      "hits": 4,
+      "misses": 2,
+      "sets": 2,
+      "invalidations": 0,
+      "available": true,
+      "keys": 2,
+      "used_memory": "1.15M"
+    },
+    "features_csv_kb": 759.0,
+    "rss_mb": {
+      "start": 108.8,
+      "after_imports": 169.1,
+      "after_service": 210.8,
+      "after_dashboard": 286.2
+    },
+    "docker_image": "2.47GB"
+  }
+}

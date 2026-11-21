@@ -1,0 +1,10 @@
+{
+  "description": "Replication parameters from Huang, Wang & Wan (2021), Table 2 (JPM, 2021-08-23)",
+  "S0": 156.7,
+  "K": 150.0,
+  "r": 0.0015,
+  "sigma": 0.282,
+  "q": 0.0233,
+  "t1": 0.5,
+  "T2": 1.0
+}

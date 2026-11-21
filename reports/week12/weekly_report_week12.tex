@@ -1,0 +1,51 @@
+% Week 12 实验周报 —— 编译方式：XeLaTeX（数字来自 docs/week12/numbers.tex）
+\documentclass[11pt]{ctexart}
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\setlist{nosep}
+\input{../../docs/week12/numbers.tex}
+
+\title{\textbf{Chooser Option 定价项目 —— 第 12 周实验报告}\\
+\large Enhancement 第 4 周（结项）：回答导师两问、换锚上线、ML 参考价扩展、终测与结项报告}
+\author{佟铸城（Zhucheng Tong）}
+\date{2026 年 10 月 13 日}
+
+\begin{document}
+\maketitle
+
+\section{本周目标}
+回答导师对第 11 周的两个问题（ML 增量的统计显著性边界；隐含波动率是否值得作为候选锚），把第 11 周决定的换锚落到工具上，复测全部审计与性能，并在第 8 周最终报告原文件上续写第 9--12 周，形成结项报告。
+
+\section{完成工作}
+\begin{enumerate}
+  \item \textbf{预注册}：检验判据在跑数前写入 \texttt{docs/week12/preregistration.json} 并记录哈希（假设、统计量、推断程序、size 检验门槛、Holm 矫正、决策规则）；
+  \item \textbf{显著性与隐含波动率}：\texttt{src/analysis\_w12.py}；S\&P 500 面板的 OptionMetrics 隐含波动率按收益相关匹配证券代码后提取（仅本机）；
+  \item \textbf{换锚上线}：GARCH(1,1) 1 日锚逐股票存储状态、增量续算，主定价切换（新股退回 EWMA），误差带按新锚重算；
+  \item \textbf{ML 参考价扩展}：按事先规则，把横截面 GBDT 固化为参考模型，覆盖当日点时成分股；
+  \item \textbf{修复}：调度器漏跑、写库清空未提供的列、批量重建无逐票容错、研究面板与新增列冲突、代码被复用的退出成员；
+  \item \textbf{终测与审计}：第 12 周 12 项审计全过（连带回归第 7、9--11 周）；性能终测；
+  \item \textbf{结项报告}：17 页（\texttt{docs/week12/final\_report\_cn.pdf}），第 7--12 节数字全部由脚本生成为宏。
+\end{enumerate}
+
+\section{关键结果}
+\begin{itemize}
+  \item \textbf{ML 增量的显著性边界}：2023--2024 年样本外，相对 GARCH 锚的增量为每份 \rnHTwoDelta{} 美元 MAE，95\% 区间 \rnHTwoLo--\rnHTwoHi（行业簇 bootstrap，size \rnHTwoSizeSector\%，Holm 后显著）。区间以这段时期为条件；增量主要来自 2024 年（\rnHTwoYFour，2023 年 \rnHTwoYThree），独立年份只有两个，不做时间维度的显著性推断。按事先规则判定成立，ML 参考价扩展到面板成员。
+  \item \textbf{隐含波动率的定位}：面板上是检验过的最强的锚（MAE \rnIvMaeIv{} 美元，GARCH 1 日 \rnIvMaeGd、GARCH 1 年 \rnIvMaeGy），优势来自每只股票的波动率水平定位而非择时；对 GARCH 1 日锚的优势显著，对免费平稳锚的优势（\rnHFourDelta{} 美元）的推断程序 size 不合格、只作描述，可部署性无法核实——按事先判据定位为\textbf{研究基准}，不列为候选锚。
+  \item \textbf{换锚}：GARCH 1 日锚相对 EWMA 的增量 \rnHOneDelta{} 美元、每个合格年份为正，但推断程序 size 不合格，只作描述；换锚决定依据第 11 周三个窗口的证据。工具误差带改为 \rnBandGCalm{} / \rnBandGFear{} 美元，校准窗口不含 2020 年危机，已注明可能偏窄。
+  \item \textbf{性能}：数据库端最新状态读取 \rnLatestBeforeMs{} $\to$ \rnLatestFinalMs{} ms；GARCH 步骤每日成本普通日 \rnGarchOrdS{} s、重估日 \rnGarchRefitS{} s；新 ML 参考价需要当日整个截面，单票报价（未命中缓存）\rnWnineQuoteMs{} $\to$ \rnFinalScalarMs{} ms。
+\end{itemize}
+
+\section{实验记录与发现}
+\begin{itemize}
+  \item size 检验本身先在已知答案的数据上验证，发现第一版有偏（纯噪声下拒绝率明显偏高：行业日均值混入了个股噪声），修正后才用于真实数据；四项假设上按股票重抽样的程序全部严重失准（\rnHTwoSizeTicker\% 等），只有改用行业簇程序且逐项通过 size 检验的才给显著性。
+  \item 复核发现第 10 周把“历史不足”归因于新上市或改名有误，实为退市（生存偏差）与代码被他司复用；后者 \rnPostExit{} 个已在工具中停用，研究面板不受影响。
+  \item 调度器漏跑的真正原因：宿主机睡眠时虚拟机挂起、单调时钟停走，长等待被不断推迟；改为按墙钟的 10 分钟心跳补跑。
+  \item GARCH 参数靠数值优化求得，macOS 与 Linux 容器的结果在末几位不同；“逐位一致”只在同一平台内成立，跨平台审计改用相对容差。
+\end{itemize}
+
+\section{交付与后续}
+交付：代码包、结项报告、本周报、学习报告（终版）。演示形式（视频或现场）待与导师确认。后续方向（结项报告第 13 节）：用隐含波动率做 GARCH 的方差目标化；更长的样本外历史；美式 chooser 与 ML 加速器。
+
+\end{document}

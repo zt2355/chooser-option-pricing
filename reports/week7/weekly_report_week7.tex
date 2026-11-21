@@ -1,0 +1,40 @@
+% Week 7 实验周报 —— 编译方式:XeLaTeX
+\documentclass[11pt]{ctexart}
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\setlist{nosep}
+
+\title{\textbf{Chooser Option 定价项目 —— 第 7 周实验报告}\\
+\large Advanced Analysis \& Tool Development}
+\author{佟铸城 (Zhucheng Tong)}
+\date{2026 年 9 月 1 日}
+
+\begin{document}
+\maketitle
+
+\section{本周目标}
+完成 Week 7 三项交付物:(1) 扩展敏感性分析报告;(2) 定价工具原型;(3) 实时数据集成模块。
+
+\section{完成工作}
+\begin{enumerate}
+  \item \textbf{极端情景引擎}(\texttt{src/analysis\_w7.py} + \texttt{src/tool/pricing\_service.py}):任务书规格的波动率 $+50\%$、加息 200bp,及降波动、降息、股价 $\pm15\%$、组合压力共 8 个情景;波动率$\times$利率压力曲面(16$\times$13 网格,等高线图);
+  \item \textbf{SHAP 影响美元化}:第 6 周 SHAP 对 $\ln\sigma$ 的贡献经定价函数映射为当前市场下的美元价格影响(逐特征条形图);
+  \item \textbf{Streamlit 定价工具原型}:四页签(定价/价格趋势/敏感性与压力/性能指标),双定价 + 分状态误差区间 + 样本外警示;UI 为薄壳,全部逻辑在可审计的服务层;
+  \item \textbf{实时数据集成}:工具内一键拉取当日数据(复用采集管道的 \texttt{END\_DATE} 机制),与 GitHub Actions 周更互补。
+\end{enumerate}
+
+\section{核心发现}
+\begin{enumerate}
+  \item \textbf{波动率是 chooser 的绝对主导风险因子}:$+50\%$ 波动率 $\to$ 价格 $+48.9\%$;而 $+200$bp 利率仅 $+1.5\%$——双腿 vega 同向叠加、rho 反向抵消的结构特征;组合压力测试因此退化为波动率单因子问题;
+  \item \textbf{对股价双向凸性}:现价 $\pm15\%$ 均抬价($+23.8\%$/$+56.3\%$),与第 3 周 $K$ 敏感性的 U 形一致;
+  \item \textbf{锚定口径下的特征影响排序},与第 2 周(水平口径)相比 VIX 系让位于长记忆波动率——不是矛盾,而是锚定成功剥离已知结构的证据;
+  \item 工具审计六项全过(定价与闭式解逐位一致、无套利排序、情景重算、压力面单调、服务确定性、UI 零公式)。
+\end{enumerate}
+
+\section{下周计划(Week 8:工具完善与最终交付)}
+可视化面板完善、10--15 页最终报告(含导师建议的"ML $\times$ 随机过程 1+1 融合"展望章)、演示 PPT 与演示视频脚本。
+
+\end{document}

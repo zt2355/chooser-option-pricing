@@ -1,0 +1,96 @@
+% 第 1 周交付物:数据需求说明文档(中文版) —— 编译方式:XeLaTeX
+\documentclass[11pt]{ctexart}
+\usepackage[a4paper, margin=2.4cm]{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+\setlist{nosep}
+
+\title{\textbf{数据需求说明文档}\\
+\large Advanced Chooser Option Pricing Model --- 第 1 周交付物}
+\author{佟铸城 (Zhucheng Tong)}
+\date{2026 年 7 月 \quad(采集窗口:2018-01-01 至 2024-12-31,日频)}
+
+\begin{document}
+\maketitle
+
+\section{目的}
+本文档定义项目所需的全部数据,用于:(a) 在 JPM 标的上复现基于 BSM 的
+chooser option 定价模型;(b) 模型验证;(c) 为第 5--6 周的机器学习波动率
+/定价模型提供特征。以下每条数据序列均映射到\textbf{BSM 定价输入}
+($S_0$、$\sigma$、$r$、$q$、$T$)或\textbf{ML 特征}(针对 BSM 常数波动率
+假设的局限)。
+
+\section{数据范围}
+
+\subsection{金融数据(标的资产)}
+\begin{center}
+\small
+\begin{tabular}{p{3.3cm} p{2.5cm} p{3.9cm} p{4.3cm}}
+\toprule
+\textbf{序列} & \textbf{来源} & \textbf{文件} & \textbf{用途} \\
+\midrule
+JPM 日线 OHLCV + 复权收盘价 & Yahoo Finance (\texttt{yfinance}) & \texttt{jpm\_daily.csv} & 现价 $S_0$;收益率 $\to$ 已实现波动率 $\sigma$ \\
+JPM 股息 & Yahoo Finance & \texttt{jpm\_daily.csv} & 股息率 $q$;股息增长特征 \\
+JPM 近期价格(约 100 交易日) & Alpha Vantage & \texttt{jpm\_daily\_\newline alphavantage.csv} & 与 Yahoo 交叉验证;第 7 周工具的实时备用源 \\
+标普 500 (\^{}GSPC) & Yahoo Finance & \texttt{sp500\_daily.csv} & 市场状态背景;beta/相关性特征 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{宏观数据(无风险利率)}
+\begin{center}
+\small
+\begin{tabular}{p{3.3cm} p{2.5cm} p{3.9cm} p{4.3cm}}
+\toprule
+\textbf{序列} & \textbf{来源} & \textbf{文件} & \textbf{用途} \\
+\midrule
+DGS3MO(3 月期国债) & FRED API & \texttt{fred\_rates\_daily.csv} & 短期限的无风险利率 $r$ \\
+DGS1(1 年期国债) & FRED API & \texttt{fred\_rates\_daily.csv} & 匹配 $T_2=1$ 年的无风险利率 $r$ \\
+DGS10(10 年期国债) & FRED API & \texttt{fred\_rates\_daily.csv} & 利率动量/收益率曲线水平特征 \\
+FEDFUNDS(联邦基金有效利率,月频) & FRED API & \texttt{fred\_rates\_daily.csv} & 货币政策状态特征 \\
+T10Y2Y(10 年--2 年利差) & FRED API & \texttt{fred\_rates\_daily.csv} & 收益率曲线形态特征 \\
+\^{}TNX / \^{}IRX(Yahoo 收益率指数) & Yahoo Finance & \texttt{treasury\_10y\_\newline yahoo\_daily.csv}、\newline\texttt{tbill\_13w\_yahoo\newline \_daily.csv} & FRED 的冗余备份(跨源校验) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{情绪 / 波动率数据}
+\begin{center}
+\small
+\begin{tabular}{p{3.3cm} p{2.5cm} p{3.9cm} p{4.3cm}}
+\toprule
+\textbf{序列} & \textbf{来源} & \textbf{文件} & \textbf{用途} \\
+\midrule
+\^{}VIX(CBOE 波动率指数) & Yahoo Finance & \texttt{vix\_daily.csv} & 市场隐含 30 日波动率;VIX--JPM 相关性特征;高波动状态标记 \\
+VIX 衍生情绪分(0--1) & 由 \^{}VIX 派生(第 2 周) & \texttt{vix\_daily.csv} & 情绪代理变量(经导师确认,替代 NewsAPI):滚动百分位、恐慌状态标记、VIX 动量 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{验证基准}
+经与导师确认,\textbf{无需} CME 成交价数据。第 4 周的模型验证以
+\textbf{蒙特卡洛模拟}为基准:在相同的 GBM 动态假设下,对选择日的模拟
+payoff 做收敛性检验,与 BSM 解析解交叉验证。MC 价格由已校准参数
+($S_0$、$\sigma$、$r$、$q$)在项目内部生成,不依赖额外外部数据源。
+
+\section{采集基础设施}
+\begin{itemize}
+  \item \textbf{主数据源}:Yahoo Finance(\texttt{yfinance},无需 key,日频粒度下无实际频率限制);
+  \item \textbf{利率数据源}:FRED REST API(免费 key,120 次/分钟;本项目用 5 条序列);
+  \item \textbf{备用数据源}:Alpha Vantage(免费档 25 次/日,仅最近约 100 个交易日 --- 全量历史为付费功能,故仅作备用);
+  \item API key 存放于 \texttt{.env},已从版本控制中排除;
+  \item 一键拉取:\texttt{python -m src.collect\_all};GitHub Actions 自动化调度为第 2 周交付物。
+\end{itemize}
+
+\section{已知数据缺陷}
+\begin{enumerate}
+  \item \textbf{FRED 缺失值}:节假日以 \texttt{"."} 占位 $\to$ 解析为 NaN,第 2 周清洗时插值处理;
+  \item \textbf{日历对齐}:FRED 为工作日日历(1850 行),Yahoo 为 NYSE 交易日历(1760 行),第 2 周管道统一对齐到 NYSE 日历;
+  \item \textbf{复权与不复权价格}:两者均保留 --- 收益率/波动率用复权价计算,期权 moneyness 用不复权价;
+  \item \textbf{VIX 为指数层面(标普 500)的隐含波动率},作为 JPM 的市场状态代理变量,而非 JPM 自身的隐含波动率;
+  \item \textbf{VIX 的双重角色}:VIX 既是波动率特征,又(经导师确认)兼任情绪代理。为控制信息重叠,原始水平值用作隐含波动率预期,标准化变换(百分位、z-score、动量)用作情绪状态;且 VIX 反映的是大盘而非 JPM 个股情绪。
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,41 @@
+{
+  "title": "Week 12 pre-registration: significance bound of the ML increment, and the positioning of implied volatility as an anchor",
+  "author": "Zhucheng Tong",
+  "written_before_running": "2026-10-03 (UTC); SHA-256 of this file recorded in HANDOFF.md before src/analysis_w12.py was first run",
+  "mentor_request_2026_09_30": "ML increment needs a statistical significance bound; clarify whether implied volatility is worth being a candidate anchor",
+
+  "common": {
+    "panel": "S&P 500 point-in-time panel of Week 10/11 (src.analysis_w10.build_panel), 2019-10-17..2024-12-31; label = forward 252-day realised vol; ruler = EWMA (Week 4)",
+    "loss": "absolute dollar error of the ATM chooser price (T1=0.5, T2=1) against the oracle price, row level",
+    "statistic": "Delta_MAE(A,B) = MAE(A) - MAE(B), pooled over rows; positive = B better. Composite differences are reported alongside but are NOT used for decisions (the composite is a ratio and is unstable in sub-periods, see W11 recheck)",
+    "interval": "ticker-cluster bootstrap: resample tickers with replacement keeping all of their rows; B = 2000, seed 12; 95% percentile interval; two-sided p = 2*min(P*(Delta<=0), P*(Delta>=0)). Inference is CONDITIONAL on the realised time path (it answers: in this period, is the gain general across stocks)",
+    "size_check_before_use": "simulate 300 null panels with the same tickers/dates: d_it = s_{sector(i),t} + u_it, sector-day factor and ticker AR(1) noise with persistence and variance shares estimated from the observed Delta series, population mean forced to 0; the procedure is accepted if the rejection rate at nominal 5% lies in [2.5%, 7.5%]",
+    "fallback_if_size_fails": "sector-cluster bootstrap (resample sectors, then tickers within) with its own size check; if that also fails, no significance is claimed and only descriptive intervals are reported",
+    "time_dimension": "calendar years 2022, 2023, 2024 reported separately (a year is used only if it has >= 120 out-of-sample dates); with 1-year labels there are at most 3 non-overlapping windows, so NO time-dimension p-value is claimed",
+    "family_and_multiplicity": "Holm correction at 5% over the family {H1, H2, H3, H4}"
+  },
+
+  "hypotheses": {
+    "H1_anchor_swap": "Delta_MAE(EWMA, GARCH-1d) on the ML out-of-sample rows",
+    "H2_ml_increment_PRIMARY": "Delta_MAE(GARCH-1d, GARCH-1d + cross-sectional GBDT WITHOUT sector dummies) on all walk-forward out-of-sample blocks from the first block whose purged training set has >= 252 dates, through 2024-12-31. Model, hyper-parameters, purge (252+1 dates) and quarterly refits exactly as Week 11.",
+    "H2b_secondary": "the Week 11 reported model (with sector dummies) on the same rows: reported, not in the family, not used for decisions",
+    "H3_iv_vs_garch1d": "Delta_MAE(GARCH-1d, IV-365d-50delta) on the panel rows where EWMA, GARCH-1d, GARCH-1y, 252d realised and IV are all available",
+    "H4_iv_vs_free_smooth": "Delta_MAE(S, IV) on the same rows, where S is whichever of {252d realised vol, GARCH-1y} has the LOWER MAE on those rows (choosing the stronger free comparator after the fact makes the test harder for IV, i.e. conservative)"
+  },
+
+  "iv_data": {
+    "source": "OptionMetrics optionm.vsurfdYYYY, days = 365, delta = +50 and -50, sigma_iv = mean of call and put implied vol; LOCAL research use only under the WRDS licence (data/wrds_local, git-ignored, excluded from zip and image); figures show derived results only, never the IV series",
+    "security_mapping": "a ticker is matched to an OptionMetrics secid only if the daily returns of optionm.secprd and of our price table correlate >= 0.98 over >= 250 common days (ticker-only matching is unsafe: tickers are reused and renamed); unmatched tickers are dropped and counted"
+  },
+
+  "decision_rules": {
+    "ml_increment": "ESTABLISHED (conditional on the period) if H2 is significant after Holm with Delta_MAE > 0 AND Delta_MAE > 0 in at least 2 of the 3 years; otherwise NOT ESTABLISHED",
+    "iv_classes": {
+      "deployment_candidate": "H3 and H4 significant after Holm with Delta_MAE > 0 AND deployability verified",
+      "research_candidate": "H3 and H4 significant after Holm with Delta_MAE > 0 but deployability not verified",
+      "research_benchmark": "otherwise (in particular if H4 fails: the advantage is then explained by smoothness that a free anchor already provides)"
+    },
+    "deployability": "requires a public live IV source AND a same-day level comparison with OptionMetrics. Declared in advance: OptionMetrics ends 2025-08-29 and Yahoo only provides today's chain, so a same-day comparison is NOT feasible -> deployability = NOT VERIFIED. Yahoo coverage of 300-450 day expiries is reported descriptively only.",
+    "engineering_consequences": "ML_SCOPE is expanded beyond JPM only if the ML increment is ESTABLISHED; the primary-anchor swap to GARCH-1d goes ahead (W11 decision) and H1 gives its interval"
+  }
+}

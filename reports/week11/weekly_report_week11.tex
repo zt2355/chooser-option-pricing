@@ -1,0 +1,49 @@
+% Week 11 实验周报 —— 编译方式：XeLaTeX
+\documentclass[11pt]{ctexart}
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\setlist{nosep}
+
+\title{\textbf{Chooser Option 定价项目 —— 第 11 周实验报告}\\
+\large Enhancement 第 3 周：全流程性能剖析与优化、规模压测、锚定 ML 第二轮（测试集开封）}
+\author{佟铸城（Zhucheng Tong）}
+\date{2026 年 10 月 6 日}
+
+\begin{document}
+\maketitle
+
+\section{本周目标}
+按导师第 10 周评审意见把性能测试提上日程：从仪表板到数据源逐层剖析、优化、复测，并用 S\&P 1500 做规模压测。理论线做锚定 ML 第二轮，验证集选型后开封测试集一次；另用本机 OptionMetrics 数据初检隐含波动率锚。
+
+\section{完成工作}
+\begin{enumerate}
+  \item \textbf{剖析}：五层各测一次（cProfile、tracemalloc、\texttt{EXPLAIN ANALYZE}、无头渲染），优化前后同一脚本、同一硬件；
+  \item \textbf{优化四项}：最新状态表 \texttt{features\_latest}（+两个 \texttt{(ticker, date DESC)} 索引）、市场数据并发请求、特征批量读写、仪表板廉价计数；
+  \item \textbf{规模压测}：加入 S\&P 400/600 当前成分股（仅压测，不入研究面板）至 1517 只；
+  \item \textbf{理论线}：第二轮横截面锚定 ML（按日期去均值、行业哑变量、GARCH 1 日锚），测试集开封一次；SHAP；JPM 隐含波动率锚（本机）；
+  \item \textbf{自检}：九项性能审计全过（含第 10、9 周回归）；理论脚本重跑逐字节一致；报告数字回查；前端两种模式首屏；容器内复跑。
+\end{enumerate}
+
+\section{关键结果}
+\begin{itemize}
+  \item \textbf{性能}（倍数为同脚本同硬件前后比）：全池最新行读取 457 ms $\to$ 5.9 ms（77$\times$），全池报价 390 ms $\to$ 23.5 ms（16.6$\times$；优化后全池已是压测后的 1496 只，同口径只测 S\&P 500 部分 577 只约 11 ms），市场数据阶段 12.8 s $\to$ 2.6 s（4.9$\times$），仪表板首屏 591 $\to$ 514 ms（1.15$\times$）；590 只日更 38.0 s $\to$ 25.8 s，相对第 9 周单票串行外推 103$\times$；1517 只日更 59.5 s（39 ms/票，规模近似线性）。
+  \item \textbf{一次被测量否定的优化}：特征阶段的批量读写把往返从 1770 次降到 18 次，时间却不变（14.7 $\to$ 14.5 s）——瓶颈在 PostgreSQL 端 upsert 执行与 pandas 滚动算术，不在往返。如实记录，代码保留。
+  \item \textbf{第二轮 ML 在封存测试集上首次击败 EWMA}：GARCH 1 日锚 + 横截面 GBDT 综合分 0.755（MAE 7.91 对 10.35，分标的胜率 81\%）。但大部分收益来自换锚：GARCH 1 日锚单独 0.791，ML 再压 0.036。ML 增量在验证与测试上方向一致、测试期每日横截面秩相关均为正，但标签前视 252 日、日度读数几乎完全重叠，不给显著性；测试期只有 7 个月。GARCH 锚的测试前证据是训练期 0.840、验证期 0.777（第 10 周提名它的全样本评估已含本测试期，不作独立佐证）。
+  \item \textbf{按综合分，隐含波动率是检验过的锚里最强的}（JPM，本机 OptionMetrics）：综合分 0.710、MAE 5.90 对 9.51；与 GARCH 锚同窗口比较时综合分 0.597 对 0.804，但 MAE 与 GARCH 1 年锚持平。但它赢在平稳而不在择时：与事后真值的时序相关只有 0.04；“与 EWMA 修正量相关 0.78”是两边共享 EWMA 分母的机械相关（把它换成常数反而是 0.83）。许可限制下只作方向性证据。
+\end{itemize}
+
+\section{实验记录与发现}
+\begin{itemize}
+  \item 剖析纠正了第 10 周的一个判断：全池报价的 412 ms 里定价不到 1 ms，九成在无索引的 \texttt{DISTINCT ON}；最省事的解法不是索引而是“写入时顺手维护一张最新状态表”，读取从扫 124 万行变成读 578 行。
+  \item 第二轮成功的关键不是模型而是问题的重新表述：第一轮学绝对修正量，被面板层面的时间漂移压垮；第二轮只学“相对同日其他标的”的横截面修正，同一个 EWMA 锚下 Ridge 综合分从 7.16 变成 0.859。
+  \item 归因要诚实：换锚是主要收益、ML 是次要收益。这正是最终报告第 7 章“随机过程管水平、ML 管残差”分工的实证版本。
+  \item 开封后的稳健性诊断（非选择用途）发现行业哑变量带前视：行业取自当前成分表，Unknown 的 52 只里 51 只后来被移出指数（另 1 只是缺行业字段的 JPM）。去掉全部行业哑变量后验证集选型不变、测试集 0.741，结果未被抬高；第 12 周工具不用行业哑变量。
+  \item iShares 的 Russell 3000 持仓文件对脚本返回反爬页面，规模压测改用 Wikipedia 的 S\&P 400/600 当前成分股，并明确不做点时重建、不入研究面板（审计 7）。
+\end{itemize}
+
+\section{下周计划（第 12 周，结项）}
+工程：工具主定价锚换为 GARCH 1 日预测（逐票存状态、每 21 日重估），\texttt{ML\_SCOPE} 扩到面板成员并接入横截面 GBDT 参考价；全部审计与性能表复测。文档：在第 8 周最终报告原文件上续写第 9--12 周，形成完整结项报告；演示。
+
+\end{document}

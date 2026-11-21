@@ -1,0 +1,360 @@
+{
+  "preregistration": "docs/week12/preregistration.json",
+  "B": 2000,
+  "seed": 12,
+  "part_a": {
+    "oos_start": "2022-12-27",
+    "oos_end": "2024-12-31",
+    "oos_dates": 506,
+    "oos_rows": 244038,
+    "tickers": 505,
+    "first_block_training_dates": 252,
+    "mae": {
+      "ewma": 7.5531601400240636,
+      "garch1d": 6.485095847546322,
+      "ml_nodummies": 6.147975296729579,
+      "ml_w11": 6.199084538729567
+    },
+    "composite_vs_ewma_descriptive": {
+      "sigma_garch_1d": 0.7847935442707216,
+      "sigma_ml_nodummies": 0.7340130887924974,
+      "sigma_ml_w11": 0.7456469338335115
+    }
+  },
+  "size_check_self_test": {
+    "iid_noise": {
+      "ticker_bootstrap_size": 0.06666666666666667,
+      "sector_bootstrap_size": 0.016666666666666666
+    },
+    "strong_sector_shocks": {
+      "ticker_bootstrap_size": 0.6866666666666666,
+      "sector_bootstrap_size": 0.09333333333333334
+    }
+  },
+  "tests": {
+    "H1": {
+      "hypothesis": "anchor swap: EWMA -> GARCH-1d",
+      "delta_mae": 1.0680642924777402,
+      "ci95": [
+        0.7907442444815048,
+        1.4373416370439327
+      ],
+      "p_boot": 0.0005,
+      "tickers": 505,
+      "rows": 244038,
+      "size_check": {
+        "procedure": "ticker",
+        "rejection_rate_at_5pct": 0.48333333333333334,
+        "accepted": false,
+        "fitted": {
+          "phi_sector": 0.99,
+          "sd_sector": 1.085454504528006,
+          "phi_ticker": 0.8655100153116573,
+          "sd_ticker": 9.342869516013476,
+          "noise_var_removed": 2.6460479937093853
+        },
+        "n_sim": 300
+      },
+      "fallback_sector_bootstrap": {
+        "ci95": [
+          0.6462958537547905,
+          1.6186556544262367
+        ],
+        "p_boot": 0.0005,
+        "clusters": 12,
+        "size_check": {
+          "procedure": "sector",
+          "rejection_rate_at_5pct": 0.09333333333333334,
+          "accepted": false,
+          "fitted": {
+            "phi_sector": 0.99,
+            "sd_sector": 1.085454504528006,
+            "phi_ticker": 0.8655100153116573,
+            "sd_ticker": 9.342869516013476,
+            "noise_var_removed": 2.6460479937093853
+          },
+          "n_sim": 300
+        }
+      },
+      "procedure": "descriptive only (both procedures mis-sized)",
+      "ci95_used": [
+        0.6462958537547905,
+        1.6186556544262367
+      ],
+      "p_used": 0.0005,
+      "by_year": {
+        "2022": {
+          "delta_mae": 0.8538375767132745,
+          "dates": 4,
+          "rows": 1912
+        },
+        "2023": {
+          "delta_mae": 0.20293026356092045,
+          "dates": 250,
+          "rows": 120267
+        },
+        "2024": {
+          "delta_mae": 1.925257242824295,
+          "dates": 252,
+          "rows": 121859
+        }
+      },
+      "p_holm": 0.002,
+      "significant_holm_5pct": false
+    },
+    "H2": {
+      "hypothesis": "ML increment (no sector dummies)",
+      "delta_mae": 0.33712055081674386,
+      "ci95": [
+        0.24121675069810494,
+        0.4290227452821486
+      ],
+      "p_boot": 0.0005,
+      "tickers": 505,
+      "rows": 244038,
+      "size_check": {
+        "procedure": "ticker",
+        "rejection_rate_at_5pct": 0.5,
+        "accepted": false,
+        "fitted": {
+          "phi_sector": 0.99,
+          "sd_sector": 0.4729102611066407,
+          "phi_ticker": 0.6657482723307463,
+          "sd_ticker": 6.779576109894573,
+          "noise_var_removed": 1.3932922822091165
+        },
+        "n_sim": 300
+      },
+      "fallback_sector_bootstrap": {
+        "ci95": [
+          0.20642630332815173,
+          0.45599546406266717
+        ],
+        "p_boot": 0.0005,
+        "clusters": 12,
+        "size_check": {
+          "procedure": "sector",
+          "rejection_rate_at_5pct": 0.04666666666666667,
+          "accepted": true,
+          "fitted": {
+            "phi_sector": 0.99,
+            "sd_sector": 0.4729102611066407,
+            "phi_ticker": 0.6657482723307463,
+            "sd_ticker": 6.779576109894573,
+            "noise_var_removed": 1.3932922822091165
+          },
+          "n_sim": 300
+        }
+      },
+      "procedure": "sector bootstrap",
+      "ci95_used": [
+        0.20642630332815173,
+        0.45599546406266717
+      ],
+      "p_used": 0.0005,
+      "by_year": {
+        "2022": {
+          "delta_mae": -0.35293882450623243,
+          "dates": 4,
+          "rows": 1912
+        },
+        "2023": {
+          "delta_mae": 0.04755401218291136,
+          "dates": 250,
+          "rows": 120267
+        },
+        "2024": {
+          "delta_mae": 0.6337313257902185,
+          "dates": 252,
+          "rows": 121859
+        }
+      },
+      "p_holm": 0.002,
+      "significant_holm_5pct": true
+    },
+    "H3": {
+      "hypothesis": "IV vs GARCH-1d",
+      "delta_mae": 1.4787406877998432,
+      "ci95": [
+        1.2975927046732183,
+        1.6770970462493116
+      ],
+      "p_boot": 0.0005,
+      "tickers": 506,
+      "rows": 467189,
+      "size_check": {
+        "procedure": "ticker",
+        "rejection_rate_at_5pct": 0.22666666666666666,
+        "accepted": false,
+        "fitted": {
+          "phi_sector": 0.8731513598484255,
+          "sd_sector": 1.4958889686552934,
+          "phi_ticker": 0.8282226883844952,
+          "sd_ticker": 8.217920839635639,
+          "noise_var_removed": 2.175485710234575
+        },
+        "n_sim": 300
+      },
+      "fallback_sector_bootstrap": {
+        "ci95": [
+          1.1498845198329641,
+          1.8039258004196257
+        ],
+        "p_boot": 0.0005,
+        "clusters": 12,
+        "size_check": {
+          "procedure": "sector",
+          "rejection_rate_at_5pct": 0.03666666666666667,
+          "accepted": true,
+          "fitted": {
+            "phi_sector": 0.8731513598484255,
+            "sd_sector": 1.4958889686552934,
+            "phi_ticker": 0.8282226883844952,
+            "sd_ticker": 8.217920839635639,
+            "noise_var_removed": 2.175485710234575
+          },
+          "n_sim": 300
+        }
+      },
+      "procedure": "sector bootstrap",
+      "ci95_used": [
+        1.1498845198329641,
+        1.8039258004196257
+      ],
+      "p_used": 0.0005,
+      "by_year": {
+        "2020": {
+          "delta_mae": -2.5364178636509664,
+          "dates": 6,
+          "rows": 2670
+        },
+        "2021": {
+          "delta_mae": 1.5956627305520457,
+          "dates": 252,
+          "rows": 113146
+        },
+        "2022": {
+          "delta_mae": 1.8207758113578072,
+          "dates": 251,
+          "rows": 115282
+        },
+        "2023": {
+          "delta_mae": 1.110242804464732,
+          "dates": 250,
+          "rows": 117261
+        },
+        "2024": {
+          "delta_mae": 1.4894378944554203,
+          "dates": 252,
+          "rows": 118830
+        }
+      },
+      "p_holm": 0.002,
+      "significant_holm_5pct": true
+    },
+    "H4": {
+      "hypothesis": "IV vs free smooth (garch1y)",
+      "delta_mae": 1.766527338420517,
+      "ci95": [
+        1.3743458678346474,
+        2.2213052936479354
+      ],
+      "p_boot": 0.0005,
+      "tickers": 506,
+      "rows": 467189,
+      "size_check": {
+        "procedure": "ticker",
+        "rejection_rate_at_5pct": 0.4166666666666667,
+        "accepted": false,
+        "fitted": {
+          "phi_sector": 0.99,
+          "sd_sector": 1.9958285967999876,
+          "phi_ticker": 0.9760740272563551,
+          "sd_ticker": 8.769648067425093,
+          "noise_var_removed": 2.4774029943927594
+        },
+        "n_sim": 300
+      },
+      "fallback_sector_bootstrap": {
+        "ci95": [
+          1.2863919790991274,
+          2.4354051002911055
+        ],
+        "p_boot": 0.0005,
+        "clusters": 12,
+        "size_check": {
+          "procedure": "sector",
+          "rejection_rate_at_5pct": 0.08,
+          "accepted": false,
+          "fitted": {
+            "phi_sector": 0.99,
+            "sd_sector": 1.9958285967999876,
+            "phi_ticker": 0.9760740272563551,
+            "sd_ticker": 8.769648067425093,
+            "noise_var_removed": 2.4774029943927594
+          },
+          "n_sim": 300
+        }
+      },
+      "procedure": "descriptive only (both procedures mis-sized)",
+      "ci95_used": [
+        1.2863919790991274,
+        2.4354051002911055
+      ],
+      "p_used": 0.0005,
+      "by_year": {
+        "2020": {
+          "delta_mae": 1.7477427495368605,
+          "dates": 6,
+          "rows": 2670
+        },
+        "2021": {
+          "delta_mae": 0.7733928299033578,
+          "dates": 252,
+          "rows": 113146
+        },
+        "2022": {
+          "delta_mae": 1.2410890781050277,
+          "dates": 251,
+          "rows": 115282
+        },
+        "2023": {
+          "delta_mae": 4.155908866497139,
+          "dates": 250,
+          "rows": 117261
+        },
+        "2024": {
+          "delta_mae": 0.8644963539460503,
+          "dates": 252,
+          "rows": 118830
+        }
+      },
+      "p_holm": 0.002,
+      "significant_holm_5pct": false
+    }
+  },
+  "secondary": {
+    "H2b": {
+      "delta_mae": 0.2860113088167566,
+      "ci95": [
+        0.1899012607755741,
+        0.3753353002830123
+      ],
+      "p_boot": 0.0005,
+      "tickers": 505,
+      "rows": 244038,
+      "note": "W11 reported model (with look-ahead sector dummies); not in the family"
+    }
+  },
+  "decisions": {
+    "ml_increment": "ESTABLISHED",
+    "ml_increment_years_used": [
+      2023,
+      2024
+    ],
+    "ml_increment_positive_years": 2,
+    "iv_class": "research_benchmark",
+    "deployability": "NOT VERIFIED (pre-declared: no same-day overlap between OptionMetrics, ending 2025-08-29, and live Yahoo chains)",
+    "ml_scope_expansion": "allowed"
+  }
+}

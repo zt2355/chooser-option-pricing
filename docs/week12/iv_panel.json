@@ -1,0 +1,44 @@
+{
+  "rows": 467189,
+  "tickers": 506,
+  "start": "2020-12-23",
+  "end": "2024-12-31",
+  "mae": {
+    "ewma": 7.516565750696303,
+    "garch1d": 6.633943217577968,
+    "garch1y": 6.921729868198638,
+    "rv252": 7.597560553823839,
+    "iv": 5.155202529778122
+  },
+  "free_smooth_comparator": "garch1y",
+  "composite_vs_ewma_descriptive": {
+    "ewma": 1.0,
+    "garch1d": 0.8326574805178075,
+    "garch1y": 0.944482424490302,
+    "rv252": 0.884294752065331,
+    "iv": 0.6598631938762528
+  },
+  "median_within_ticker_std": {
+    "ewma": 0.07461453270221699,
+    "garch1d": 0.06662629544734955,
+    "garch1y": 0.015343775972723961,
+    "rv252": 0.06342432507091197,
+    "iv": 0.03304836726972489,
+    "oracle": 0.040851279139382767
+  },
+  "iv_ticker_win_rate_vs": {
+    "garch1d": 0.9209486166007905,
+    "garch1y": 0.7035573122529645
+  },
+  "mechanism_descriptive": {
+    "mae_iv_constant_at_ticker_mean": 4.690823067309686,
+    "median_ts_corr_iv_vs_oracle": 0.11243078075785749,
+    "mae_garch1y_constant_at_ticker_mean": 6.473942167732845,
+    "median_ts_corr_garch1y_vs_oracle": -0.24980249982289227,
+    "mae_garch1d_constant_at_ticker_mean": 4.521407251368678,
+    "median_ts_corr_garch1d_vs_oracle": 0.049085628068081005,
+    "xs_corr_ticker_mean_iv_vs_oracle": 0.9460366144287651,
+    "xs_corr_ticker_mean_garch1y_vs_oracle": 0.8444203067269591,
+    "note": "constant-at-ticker-mean anchors use the whole sample (look-ahead): diagnostic only"
+  }
+}

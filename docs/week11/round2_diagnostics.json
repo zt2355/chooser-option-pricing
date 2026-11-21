@@ -1,0 +1,99 @@
+{
+  "non_selection_use": true,
+  "sector": {
+    "unknown_row_share": 0.07770682026880374,
+    "unknown_tickers": 52,
+    "unknown_later_removed_from_index": 51,
+    "unknown_still_in_index": [
+      "JPM"
+    ],
+    "ablation_without_sector_dummies": {
+      "chosen_on_validation": "gbdt_cs@garch1d",
+      "validation": {
+        "ridge_cs@ewma": 0.8558012670212614,
+        "gbdt_cs@ewma": 0.8751132686980363,
+        "anchor_only@ewma": 1.0,
+        "ridge_cs@garch1d": 0.7278663570744502,
+        "gbdt_cs@garch1d": 0.7032716570599353,
+        "anchor_only@garch1d": 0.7773482783900946
+      },
+      "test": {
+        "gbdt_cs@garch1d": {
+          "composite": 0.7409933289269964,
+          "MAE": 7.771958924162644,
+          "win_rate": 0.8234086242299795
+        },
+        "anchor_only@ewma": {
+          "composite": 1.0,
+          "MAE": 10.345709124290604,
+          "win_rate": 0.0
+        },
+        "anchor_only@garch1d": {
+          "composite": 0.7905987975100804,
+          "MAE": 8.363907854941669,
+          "win_rate": 0.8008213552361396
+        }
+      },
+      "test_rank_IC": 0.3487138275679947,
+      "test_ratio_R2_cs": 0.15129979271012284
+    }
+  },
+  "garch1d_anchor_by_window": {
+    "train": {
+      "rows": 332212,
+      "composite": 0.8397806303954214,
+      "MAE_garch1d": 6.69404705215254,
+      "MAE_ewma": 7.411572216738569
+    },
+    "validation": {
+      "rows": 73427,
+      "composite": 0.7773482783900946,
+      "MAE_garch1d": 6.206849443485057,
+      "MAE_ewma": 7.4427874922703205
+    },
+    "test": {
+      "rows": 73521,
+      "composite": 0.7905987975100804,
+      "MAE_garch1d": 8.363907854941669,
+      "MAE_ewma": 10.345709124290604
+    }
+  },
+  "cross_sectional_stability": {
+    "test_dates": 152,
+    "daily_mean_correction": {
+      "min": -0.017546619289603084,
+      "max": 0.004344481614904062
+    },
+    "composite_level_shift_only": 0.8014758843982766,
+    "composite_cross_section_only": 0.7419937810905443,
+    "daily_rank_IC": {
+      "mean": 0.3109964957596358,
+      "share_positive": 1.0,
+      "lag1_autocorr": 0.8979912540531386
+    },
+    "note": "labels look 252 trading days ahead and the test spans ~150 dates: the daily ICs overlap almost fully, so no significance is claimed"
+  },
+  "pit_guards": {
+    "cut_date": "2024-05-23",
+    "truncation": {
+      "JPM": {
+        "features_identical": true,
+        "garch_identical": true,
+        "rows_checked": 1609
+      },
+      "AAPL": {
+        "features_identical": true,
+        "garch_identical": true,
+        "rows_checked": 1609
+      },
+      "XOM": {
+        "features_identical": true,
+        "garch_identical": true,
+        "rows_checked": 1609
+      }
+    },
+    "label_blocks": 6,
+    "min_label_gap_days": 1,
+    "all_pass": true
+  }
+}

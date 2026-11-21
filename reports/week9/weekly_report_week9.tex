@@ -1,0 +1,50 @@
+% Week 9 实验周报 —— 编译方式：XeLaTeX
+\documentclass[11pt]{ctexart}
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\setlist{nosep}
+
+\title{\textbf{Chooser Option 定价项目 —— 第 9 周实验报告}\\
+\large Enhancement 第 1 周：在线架构骨架、性能基线与 GARCH 锚定对照}
+\author{佟铸城（Zhucheng Tong）}
+\date{2026 年 9 月 22 日}
+
+\begin{document}
+\maketitle
+
+\section{本周目标}
+按导师确认的四周规划，第 9 周搭在线骨架：PostgreSQL 与 Redis 跑通，JPM 单票的采集、入库、定价、缓存、前端读库全链路打通，留下优化前的性能基线；理论线做 GARCH(1,1) 锚定与 EWMA 锚定的对照。
+
+\section{完成工作}
+\begin{enumerate}
+  \item \textbf{持久层与缓存层}：9 张表的模式（每张市场表带 ticker，第 10 周扩股票池不改表）、迁移与回填脚本、幂等 upsert；Redis 缓存报价与情景表（TTL 1 小时，流水线写库后按标的失效），不可达时自动降级；
+  \item \textbf{服务层改造}：\texttt{pricing\_service} 优先读库、无库读文件，两条路径同一套算术；第 2 周特征算术抽成通用模块 \texttt{src/features.py}，文件管道与数据库管道共用，前八周脚本零改动；
+  \item \textbf{每日流水线与调度器}：增量采集（10 天重叠区吸收数据源修订）$\to$ 重建特征 $\to$ 报价 $\to$ 写库 $\to$ 失效缓存 $\to$ 运行日志；APScheduler 工作日 17:30 纽约时间触发；联网实测拉取 13 个新交易日耗时 4.5 秒；
+  \item \textbf{部署}：\texttt{docker-compose.yml}（PostgreSQL、Redis、迁移、应用、调度器）与 Dockerfile；本机无 Docker，用源码编译的 PostgreSQL 16.4 与 Redis 8.1 经 \texttt{scripts/dev\_services.sh} 复现同一套服务并逐条验证；
+  \item \textbf{前端}：数据源与缓存状态标识、标的选择、每日主定价存档曲线、新增"运行状态"页签（表行数、运行日志、缓存命中）；
+  \item \textbf{性能基线}：11 个环节的时间与内存留档（\texttt{docs/week9/perf\_baseline.json}），含硬件信息；
+  \item \textbf{理论线}：GARCH(1,1) 期限结构锚定与 1 日锚定在第 4 周 oracle 面板上与 EWMA 对照（\texttt{src/analysis\_w9.py}）。
+\end{enumerate}
+
+\section{关键结果}
+\begin{itemize}
+  \item \textbf{一致性}：库中特征与文件特征在 2170 个交易日上最大差 $5.7\times10^{-14}$；库路径与文件路径报价最大差 $2.3\times10^{-13}$；库中每条报价可由同日特征复现（差 0）。八项在线栈审计与第 7 周六项工具审计全部通过。
+  \item \textbf{性能基线}（Apple M4 Pro，优化前）：单次报价 1.8 ms，Redis 命中 0.15 ms，前端首屏 724 ms，重算流水线 1.9 s，联网日更 4.5 s；面板定价标量循环比向量化慢约 1000 倍（345 ms 对 0.32 ms），是第 10 周批量日更的主要风险点；库读比文件慢 7 倍，源于每次请求重算全段 EWMA。五条优化候选已列入第 12 周清单。
+  \item \textbf{GARCH 锚定}：1 年期限结构锚综合分 0.804（MAE 4.18 对 EWMA 6.29，$R^2$ 0.53 对 $-0.10$，P95AE 10.1 对 14.4），四种权重下均第一；但 Bias $+3.43$，2023 年反而比 EWMA 差。读数：它赢在不追逐波动率尖峰而非赢在预测；单一标的一次胜利不构成部署证据，第 10 周在 S\&P 500 面板复检后再决定是否换锚。
+\end{itemize}
+
+\section{实验记录与发现}
+\begin{itemize}
+  \item 审计 1 初版直接比对库与文件的全部交易日，失败于末尾两个交易日的利率、VIX 与 Parkinson 波动率。排查证明是 FRED 与 Yahoo 对近期数据的正常修订（流水线重拉了 10 天重叠区），改为排除末尾 15 天修订窗口后通过。这条修订窗口的存在本身写进了架构文档。
+  \item 我在服务层注释里曾预判"每次报价重读模型文件是最大热点"，基线实测每次仅多 0.4 ms，判断错误已改正；真正的热点是面板标量循环与全量特征重建。先测量再优化的必要性由此直接体现。
+  \item Docker Desktop 装好后 compose 栈实跑通过：五容器启动、迁移回填、容器内联网流水线、容器内八项审计、容器内报价与本机逐位一致。实跑暴露两个问题并已修复：（a）未钉死的依赖在容器里解析到 scikit-learn 1.9 与 pandas 3.0，而部署模型由 1.7.1 序列化，requirements 改为精确版本；（b）文件回填把快照末尾一条收盘价为空的残缺行覆盖回库，滚动特征随之全为 NaN，参考模型报错——回填改为只引导不覆盖、残缺行写入前丢弃、服务层只取特征完整的最新行。
+  \item 补充自检一轮（空库冷启动重建、数据库或 Redis 不可达时的降级、无库模式前端首屏、调度器真实执行一次、analysis\_w9 两次重跑逐位一致、文件管道重跑与现有 CSV 一致、报告数字与 JSON 逐项回查）全部通过；顺带修掉流水线里一个尚未触发的缺陷（新增指数符号且表为空时日期计算会崩溃）。
+  \item \textbf{一个真实的疏漏}：第 4 周的存档审计现在失败。用第 4 周交付时提交的特征文件重跑则通过，差异来自 GitHub Actions 周更后 Yahoo 对历史复权价的修订（比率 $1\pm10^{-6}$，日收益最大偏差 $8\times10^{-7}$）。前几周的审计把"存档 JSON"与"持续更新的数据文件"直接比对、容差 $10^{-9}$，在数据源会修订历史的现实下必然失效。处理：第 4--6 周脚本作为已交付物不改；从第 9 周起每次运行在 \texttt{pipeline\_runs} 记录数据版本，第 12 周结项报告的可复现性一节改为"按数据快照复现"，快照由 git 历史提供。
+\end{itemize}
+
+\section{下周计划（第 10 周）}
+工程线：股票池扩到 S\&P 500 历史成分股，多源轮换与限流应对，批量定价接向量化路径，调度器上线，前端加概览页签。理论线：GARCH 期限结构锚在 S\&P 500 面板复检；锚定残差 ML 第一轮（walk-forward、测试集封存）。
+
+\end{document}

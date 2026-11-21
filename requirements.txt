@@ -1,0 +1,20 @@
+# Pinned to the versions the research was run and audited with (Week 9).
+# scikit-learn MUST stay 1.7.1: the deployed models/*.joblib were pickled with it.
+apscheduler==3.11.3
+arch==8.0.0
+joblib==1.5.1
+lxml==6.0.0            # pandas.read_html (src/universe/sp500.py, sp1500_scale.py)
+matplotlib==3.10.5
+numpy==2.2.6
+pandas==2.2.3
+psycopg2-binary==2.9.12
+pyarrow==25.0.1
+redis==8.1.0
+requests==2.32.5
+scikit-learn==1.7.1
+scipy==1.16.1
+shap==0.52.0
+sqlalchemy==2.0.51
+streamlit==1.62.0
+torch==2.8.0
+yfinance==0.2.66

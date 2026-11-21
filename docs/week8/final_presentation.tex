@@ -1,0 +1,117 @@
+% 第 8 周交付物:最终演示幻灯(beamer) —— 编译方式:XeLaTeX
+\documentclass[aspectratio=169]{beamer}
+\usepackage{ctex}
+\usepackage{booktabs}
+\usetheme{Madrid}
+\usecolortheme{seahorse}
+\setbeamertemplate{navigation symbols}{}
+
+\title{Advanced Chooser Option Pricing Model}
+\subtitle{with Real-World Data \& Machine Learning —— 最终汇报}
+\author{佟铸城 (Zhucheng Tong)}
+\date{2026 年 9 月}
+
+\begin{document}
+\frame{\titlepage}
+
+\begin{frame}{项目一览}
+\begin{itemize}
+  \item \textbf{标的与合约}:JPM,simple chooser($t_1$ 选 call/put,共同 $K$、$T_2$)
+  \item \textbf{八周路线}:数据管道 $\to$ BSM 复现与基线 $\to$ ML 两路线 $\to$ 定价工具
+  \item \textbf{三个核心数字}:闭式解复现 \$29.13;常数波动率代价 $\approx$ 价格的 35\%;严格样本外下 ML 全部不敌 EWMA 锚定基线
+  \item \textbf{最终形态}:双定价工具——随机过程出框架,ML 作带警示参考
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Chooser Option 是什么,怎么定价}
+\begin{itemize}
+  \item 持有人在\textbf{选择日 $t_1$} 决定期权是 call 还是 put(共同 $K$、$T_2$)——适合"确定有大波动、方向不明"的场景
+  \item 选择日价值 $V(t_1)=\max(C,P)$;用 put--call parity 改写:
+  \[ V(t_1) = C + \max\!\big(0,\ Ke^{-r\tau} - S_{t_1}e^{-q\tau}\big), \quad \tau = T_2 - t_1 \]
+  \item $\Rightarrow$ chooser = 一份 call$(K,T_2)$ + $e^{-q\tau}$ 份 put$(Ke^{-(r-q)\tau},\,t_1)$ 的\textbf{静态组合},BSM 下有闭式解
+  \item 直觉:比 straddle 便宜(选择在 $t_1$ 锁定),比单腿贵(多了选择权)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{数据体系(W1--2)}
+\begin{itemize}
+  \item 三源冗余:Yahoo(主)/ FRED(利率)/ Alpha Vantage(备用+实时);2018--2024 日频
+  \item 18 特征五族;0--1 情绪分 = VIX 滚动 252 日分位(经导师确认替代新闻源;双重角色控制)
+  \item 清洗决策显式化:NYSE 日历对齐、按缺失机制分层填充、IQR \textbf{标记但保留}(极值全为真实事件)
+  \item GitHub Actions 每周五自动采集$\to$预处理$\to$提交(研究窗口与新鲜度解耦)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{理论与复现(W3):三角验证}
+\begin{itemize}
+  \item Parity 分解:chooser = call$(K,T_2)$ + $e^{-q\tau}$ put$(Ke^{-(r-q)\tau},t_1)$ $\Rightarrow$ 闭式解
+  \item \$29.1299:双解析实现差 $7\times10^{-15}$;条件 MC 收敛 $\pm1$se(标准误为终值模拟 54\%)
+  \item 无套利排序:$\max(C,P)=18.69 < 29.13 < \text{straddle}=34.06$
+  \item 超出论文:$t_1$ 敏感性补全;moneyness 规则代价 6bp(零利率)$\to$60bp($r$=10\%)——近似无害性是状态依赖的
+\end{itemize}
+\end{frame}
+
+\begin{frame}{基线评估(W4):常数波动率的代价}
+\centering
+\begin{tabular}{lrrr}
+\toprule
+$\sigma$ 估计器 & MAE(\$) & 平静期 & 恐慌期 \\
+\midrule
+21 日已实现 & 9.80 & 9.31 & \textbf{11.38} \\
+252 日已实现 & 10.37 & \textbf{10.94} & 8.55 \\
+EWMA & \textbf{9.44} & 9.01 & 10.83 \\
+\bottomrule
+\end{tabular}
+\begin{itemize}
+  \item 事后真值口径:误差唯一归因于常数波动率假设;最优仍达价格 35\%
+  \item \textbf{失效结构}:快估计器恐慌期追高、慢估计器危机后拖尾——无单一窗口全状态占优
+  \item 八指标 + 加权综合分体系($<1$ 胜基线),W5--6 沿用同一把尺
+\end{itemize}
+\end{frame}
+
+\begin{frame}{ML 增强(W5):锚定设计}
+\begin{itemize}
+  \item 防泄漏协议:净化时序切分(训练尾删 252 行)+ 测试集封存
+  \item 水平目标七模型验证集全败(+\$14$\sim$26 统一偏差):COVID 训练窗 $\times$ 低波动验证窗
+  \item \textbf{锚定目标} $y=\ln(\sigma_{oracle}/\sigma_{EWMA})$:输出 0 恒等还原基线(审计断言)
+  \item 锚定 Ridge 验证集综合分 \textbf{0.567}——与条件 MC 同源:剥离已知结构,学习只留残差
+\end{itemize}
+\end{frame}
+
+\begin{frame}{最终样本外结果(W6):如实报告的负结果}
+\begin{itemize}
+  \item walk-forward 重训 + 验证集调参 + 测试集\textbf{单次开封}(2024-03 至 12)
+  \item \textbf{EWMA 基线四种权重方案全胜}(MAE \$8.51 vs 最优 ML \$14.75)
+  \item 验证集冠军 LSTM:val 2.82 $\to$ test 17.07 —— 验证集过拟合活例
+  \item 归因:训练数据仅一个半状态周期;测试标签窗全含 2025-04 崩盘;W5 胜利部分为巧合
+  \item SHAP:均值回复逻辑方向正确、幅度不可标定 —— 瓶颈在数据的状态多样性
+\end{itemize}
+\end{frame}
+
+\begin{frame}{敏感性与工具(W7--8)}
+\begin{itemize}
+  \item 波动率是绝对主导:$\sigma+50\% \to$ 价格 $+48.9\%$;加息 200bp 仅 $+1.5\%$(vega 叠加、rho 对消)
+  \item 股价 $\pm15\%$ 均抬价(双向凸性,呼应 $K$ 敏感性 U 形)
+  \item \textbf{Streamlit 工具}:双定价、分状态误差区间、情景/压力面、性能存档、一键实时数据
+  \item 六项工具审计:定价与闭式解逐位一致、无套利排序、UI 零公式等
+\end{itemize}
+\end{frame}
+
+\begin{frame}{结论:ML $\times$ 随机过程 = 1+1,不是二选一}
+\begin{enumerate}
+  \item \textbf{锚定残差学习}(已实践):无套利自动满足,表现有基线下界
+  \item \textbf{收缩融合}:$\sigma_{anchor}\cdot e^{\lambda\hat y}$,在锚与 ML 间连续插值
+  \item \textbf{状态门控}:ML 判状态、随机过程按状态换校准窗——直击"无单一窗口占优"
+  \item \textbf{隐含波动率曲面残差}(需个股期权数据,enhancement 首选)
+  \item \textbf{ML surrogate 加速}:训练数据由定价模型自生成,无信噪比问题
+\end{enumerate}
+\vspace{4pt}
+分工结构:\textbf{随机过程管框架(无套利/可对冲/可归因),ML 管残差(框架覆盖不到的部分)}
+\end{frame}
+
+\begin{frame}{谢谢}
+\centering
+\Large 代码、数据、逐周报告与审计脚本均可一键复现\\[8pt]
+\normalsize GitHub: zt2355/MS-Chooser-Option \quad·\quad 工具:\texttt{streamlit run app/streamlit\_app.py}
+\end{frame}
+\end{document}

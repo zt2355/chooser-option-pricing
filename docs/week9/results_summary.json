@@ -1,0 +1,167 @@
+{
+  "panel_days": 1011,
+  "study": [
+    "2020-12-23",
+    "2024-12-31"
+  ],
+  "garch": {
+    "refit_every": 21,
+    "min_obs": 750,
+    "horizon": 252,
+    "refits": 69,
+    "mean_persistence": 0.9545674144587969,
+    "min_persistence": 0.9344839044440059,
+    "max_persistence": 0.9724183699458091
+  },
+  "metrics": {
+    "sigma_ewma": {
+      "MAE": 6.291934365304063,
+      "RMSE": 8.050582938981071,
+      "MedAE": 5.313228625907524,
+      "Bias": -1.6108908546122873,
+      "P95AE": 14.383050594980268,
+      "RegimeWorstMAE": 6.663822496965796,
+      "R2": -0.09719916576274334,
+      "Hit10": 0.2502472799208704,
+      "composite": 1.0
+    },
+    "sigma_garch_1d": {
+      "MAE": 5.560610469206237,
+      "RMSE": 7.713889311292274,
+      "MedAE": 4.54696336007445,
+      "Bias": -0.5317682861482216,
+      "P95AE": 13.77954282319641,
+      "RegimeWorstMAE": 5.857919727764678,
+      "R2": -0.007343566500629173,
+      "Hit10": 0.31849653808110784,
+      "composite": 0.8520928854701975
+    },
+    "sigma_garch_1y": {
+      "MAE": 4.1798682890492564,
+      "RMSE": 5.245170229084915,
+      "MedAE": 3.0328315392584457,
+      "Bias": 3.4309939498829456,
+      "P95AE": 10.085623440345286,
+      "RegimeWorstMAE": 4.847667601721606,
+      "R2": 0.5342530852532508,
+      "Hit10": 0.4609297725024728,
+      "composite": 0.8041445255499601
+    },
+    "sigma_252d": {
+      "MAE": 7.716097475489285,
+      "RMSE": 10.23654864656039,
+      "MedAE": 6.79272173718056,
+      "Bias": 1.0384632638143827,
+      "P95AE": 27.087077045765586,
+      "RegimeWorstMAE": 7.9558696638844815,
+      "R2": -0.7739358920115871,
+      "Hit10": 0.23837784371909002,
+      "composite": 1.2764365174961327
+    }
+  },
+  "weight_sensitivity": {
+    "main": {
+      "scores": {
+        "sigma_ewma": 1.0,
+        "sigma_garch_1d": 0.8520928854701975,
+        "sigma_garch_1y": 0.8041445255499601,
+        "sigma_252d": 1.2764365174961327
+      },
+      "ranking": [
+        "sigma_garch_1y",
+        "sigma_garch_1d",
+        "sigma_ewma",
+        "sigma_252d"
+      ]
+    },
+    "equal": {
+      "scores": {
+        "sigma_ewma": 1.0,
+        "sigma_garch_1d": 0.836501808514004,
+        "sigma_garch_1y": 0.8235863190893022,
+        "sigma_252d": 1.2663440946579623
+      },
+      "ranking": [
+        "sigma_garch_1y",
+        "sigma_garch_1d",
+        "sigma_ewma",
+        "sigma_252d"
+      ]
+    },
+    "accuracy-heavy": {
+      "scores": {
+        "sigma_ewma": 1.0,
+        "sigma_garch_1d": 0.8776230067464051,
+        "sigma_garch_1y": 0.7266671999420742,
+        "sigma_252d": 1.2568143202157038
+      },
+      "ranking": [
+        "sigma_garch_1y",
+        "sigma_garch_1d",
+        "sigma_ewma",
+        "sigma_252d"
+      ]
+    },
+    "robustness-heavy": {
+      "scores": {
+        "sigma_ewma": 1.0,
+        "sigma_garch_1d": 0.8536123008721128,
+        "sigma_garch_1y": 0.826779302403433,
+        "sigma_252d": 1.3171013973046521
+      },
+      "ranking": [
+        "sigma_garch_1y",
+        "sigma_garch_1d",
+        "sigma_ewma",
+        "sigma_252d"
+      ]
+    }
+  },
+  "mae_by_regime": {
+    "calm": {
+      "sigma_ewma": 6.663822496965796,
+      "sigma_garch_1d": 5.481724908737665,
+      "sigma_garch_1y": 4.847667601721606,
+      "sigma_252d": 7.9558696638844815
+    },
+    "fear": {
+      "sigma_ewma": 4.8903371143714,
+      "sigma_garch_1d": 5.857919727764678,
+      "sigma_garch_1y": 1.6630208794963872,
+      "sigma_252d": 6.812427765452661
+    }
+  },
+  "mae_by_year": {
+    "2020": {
+      "sigma_ewma": 8.650264159551377,
+      "sigma_garch_1d": 4.325930302831659,
+      "sigma_garch_1y": 8.208200304545699,
+      "sigma_252d": 27.170043107256934
+    },
+    "2021": {
+      "sigma_ewma": 6.4751688427141305,
+      "sigma_garch_1d": 5.238394667022915,
+      "sigma_garch_1y": 3.704472320673204,
+      "sigma_252d": 10.335202460797042
+    },
+    "2022": {
+      "sigma_ewma": 3.8563465375371813,
+      "sigma_garch_1d": 4.331304028861179,
+      "sigma_garch_1y": 2.7219127812416435,
+      "sigma_252d": 4.032062897015029
+    },
+    "2023": {
+      "sigma_ewma": 5.3596410589091,
+      "sigma_garch_1d": 4.501443063073606,
+      "sigma_garch_1y": 7.949399895736819,
+      "sigma_252d": 6.601924051215754
+    },
+    "2024": {
+      "sigma_ewma": 9.403366128381077,
+      "sigma_garch_1d": 8.18741297400073,
+      "sigma_garch_1y": 2.271906871293725,
+      "sigma_252d": 9.408549480160946
+    }
+  },
+  "verdict": "GARCH 1y term-structure beats EWMA"
+}

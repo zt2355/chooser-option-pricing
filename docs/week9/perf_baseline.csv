@@ -1,0 +1,15 @@
+stage,median_ms,min_ms,max_ms,n,peak_mb,rows,rows_prices,run_id
+S1_cold_import_service,477.5,476.4,556.9,5,,,,
+S2_history_load_file,4.063,4.021,7.496,5,1.04,,,
+S2_history_load_db,27.923,27.423,42.264,5,3.2,,,
+S3_derive_state,0.627,0.603,1.058,5,0.45,,,
+S4_quote_w7_path_model_reload,2.171,2.131,253.108,5,12.58,,,
+S5_quote_w9_path_model_resident,1.772,1.768,1.82,5,0.01,,,
+S6_quote_redis_hit,0.148,0.146,0.162,5,,,,
+S7_scenario_compute,0.585,0.55,0.663,5,,,,
+S7_scenario_redis_hit,0.196,0.181,0.219,5,,,,
+S8_panel_pricing_scalar_loop,344.685,344.327,344.948,3,0.05,1310.0,,
+S8_panel_pricing_vectorised,0.324,0.319,0.389,5,0.13,,,
+S9_reprice_pipeline_dry_run,1934.915,1810.726,2523.824,3,48.3,,,
+S10_daily_pipeline_with_network,4498.4,,,1,,,13.0,4.0
+S11_streamlit_first_render,724.223,710.816,2040.137,3,28.67,,,

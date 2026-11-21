@@ -1,0 +1,133 @@
+{
+  "hardware": {
+    "platform": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "cpu": "Apple M4 Pro",
+    "cores": 14,
+    "memory_gb": 24.0,
+    "python": "3.13.5"
+  },
+  "n_repeats": 5,
+  "results": {
+    "S1_cold_import_service": {
+      "median_ms": 477.5,
+      "min_ms": 476.4,
+      "max_ms": 556.9,
+      "n": 5
+    },
+    "S2_history_load_file": {
+      "median_ms": 4.063,
+      "min_ms": 4.021,
+      "max_ms": 7.496,
+      "n": 5,
+      "peak_mb": 1.04
+    },
+    "S2_history_load_db": {
+      "median_ms": 27.923,
+      "min_ms": 27.423,
+      "max_ms": 42.264,
+      "n": 5,
+      "peak_mb": 3.2
+    },
+    "S3_derive_state": {
+      "median_ms": 0.627,
+      "min_ms": 0.603,
+      "max_ms": 1.058,
+      "n": 5,
+      "peak_mb": 0.45
+    },
+    "S4_quote_w7_path_model_reload": {
+      "median_ms": 2.171,
+      "min_ms": 2.131,
+      "max_ms": 253.108,
+      "n": 5,
+      "peak_mb": 12.58
+    },
+    "S5_quote_w9_path_model_resident": {
+      "median_ms": 1.772,
+      "min_ms": 1.768,
+      "max_ms": 1.82,
+      "n": 5,
+      "peak_mb": 0.01
+    },
+    "S6_quote_redis_hit": {
+      "median_ms": 0.148,
+      "min_ms": 0.146,
+      "max_ms": 0.162,
+      "n": 5
+    },
+    "S7_scenario_compute": {
+      "median_ms": 0.585,
+      "min_ms": 0.55,
+      "max_ms": 0.663,
+      "n": 5
+    },
+    "S7_scenario_redis_hit": {
+      "median_ms": 0.196,
+      "min_ms": 0.181,
+      "max_ms": 0.219,
+      "n": 5
+    },
+    "S8_panel_pricing_scalar_loop": {
+      "median_ms": 344.685,
+      "min_ms": 344.327,
+      "max_ms": 344.948,
+      "n": 3,
+      "peak_mb": 0.05,
+      "rows": 1310
+    },
+    "S8_panel_pricing_vectorised": {
+      "median_ms": 0.324,
+      "min_ms": 0.319,
+      "max_ms": 0.389,
+      "n": 5,
+      "peak_mb": 0.13
+    },
+    "S9_reprice_pipeline_dry_run": {
+      "median_ms": 1934.915,
+      "min_ms": 1810.726,
+      "max_ms": 2523.824,
+      "n": 3,
+      "peak_mb": 48.3
+    },
+    "S10_daily_pipeline_with_network": {
+      "median_ms": 4498.4,
+      "n": 1,
+      "rows_prices": 13,
+      "run_id": 4
+    },
+    "S11_streamlit_first_render": {
+      "median_ms": 724.223,
+      "min_ms": 710.816,
+      "max_ms": 2040.137,
+      "n": 3,
+      "peak_mb": 28.67
+    },
+    "footprint": {
+      "process_rss_mb_end": 366.5,
+      "db_rows": {
+        "securities": 1,
+        "prices_daily": 2185,
+        "index_daily": 8742,
+        "rates_daily": 2300,
+        "features_daily": 2185,
+        "quotes_daily": 2,
+        "scenarios_daily": 16,
+        "model_registry": 6,
+        "pipeline_runs": 7
+      },
+      "cache": {
+        "hits": 14,
+        "misses": 4,
+        "sets": 4,
+        "invalidations": 2,
+        "available": true,
+        "keys": 2,
+        "used_memory": "1.04M"
+      },
+      "features_csv_kb": 755.5,
+      "db_size_mb": 11.08
+    }
+  },
+  "measured_at": "2026-09-13T09:52:32"
+}

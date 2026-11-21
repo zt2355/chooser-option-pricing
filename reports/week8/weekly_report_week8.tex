@@ -1,0 +1,34 @@
+% Week 8 实验周报 —— 编译方式:XeLaTeX
+\documentclass[11pt]{ctexart}
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\setlist{nosep}
+
+\title{\textbf{Chooser Option 定价项目 —— 第 8 周实验报告}\\
+\large Tool Finalization \& Project Delivery}
+\author{佟铸城 (Zhucheng Tong)}
+\date{2026 年 9 月 8 日}
+
+\begin{document}
+\maketitle
+
+\section{本周目标}
+完成 Week 8 四项交付物:(1) 可部署定价工具(含 README 的代码仓库);(2) 最终项目报告(10--15 页 PDF);(3) 演示视频(脚本先行,录制随后);(4) 最终演示幻灯。
+
+\section{完成工作}
+\begin{enumerate}
+  \item \textbf{工具最终化}:双定价(EWMA 锚定 BSM 主价 + ML 参考价带警示)、分状态误差区间、可视化面板(价格趋势/情景与压力面/波动率敏感性/历史性能指标)、一键实时数据更新;README 完整部署说明;
+  \item \textbf{最终报告}(\texttt{docs/week8/final\_report\_cn.pdf}):摘要 + 八章,覆盖数据体系、理论复现、基线评估、ML 协议与负结果、敏感性与工具,以及应导师建议撰写的\textbf{「ML $\times$ 随机过程 1+1 融合」展望章}(五条路线:锚定残差/收缩融合/状态门控/隐含波动率曲面残差/surrogate 加速);
+  \item \textbf{演示幻灯}(beamer,10 页)与\textbf{演示视频分镜脚本}(5--10 分钟,docs/week8/demo\_script\_cn.md);
+  \item 全项目自检:工具六项审计、报告数字与各周汇总 JSON 逐项回查、依赖与打包检查。
+\end{enumerate}
+
+\section{对导师"1+1"提示的回应}
+展望章的核心分工结构:\textbf{随机过程管框架}(无套利、可对冲、误差可归因),\textbf{ML 管残差}(框架覆盖不到的部分)。本项目的锚定设计已是该结构的第一次实践(输出 0 恒等还原基线,无套利自动满足);其余四条路线按可行性排序,其中隐含波动率曲面残差与 surrogate 加速可作为 enhancement 阶段的落地方向。
+
+\section{项目收束}
+八周核心任务全部完成:四个里程碑(W2 数据管道 / W4 基线 / W6 最优方案判定 / W8 交付套件)均达成;最优定价方案的答案是"当前数据规模下 EWMA 锚定 BSM,ML 以残差学习框架待数据条件成熟"——该结论由 1310 天基线、封存测试集协议与六项审计共同背书。待演示视频录制完成后,交付套件即完整。
+
+\end{document}

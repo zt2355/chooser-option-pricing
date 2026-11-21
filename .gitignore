@@ -1,0 +1,24 @@
+# Secrets — never commit API keys
+.env
+
+# Internal working notes — not a deliverable
+HANDOFF.md
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+venv/
+.venv/
+
+# OS
+.DS_Store
+
+# Large intermediate files (raw deliverable CSVs are committed)
+data/cache/
+
+# Weekly delivery zips (sent via WeChat, not versioned)
+dist/
+
+# WRDS extracts: licence-restricted, local research only
+data/wrds_local/

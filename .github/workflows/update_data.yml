@@ -1,0 +1,45 @@
+# Week 2 deliverable: automated data pipeline on a weekly schedule.
+# Requires two repository secrets (Settings -> Secrets and variables -> Actions):
+#   FRED_API_KEY, ALPHA_VANTAGE_API_KEY
+name: weekly-data-update
+
+# Public snapshot: the weekly schedule is switched off (this copy has no API-key
+# secrets). Re-add the schedule below after setting the two secrets.
+#   schedule:
+#     - cron: "30 22 * * 5"   # Fridays 22:30 UTC, after US market close
+on:
+  workflow_dispatch: {}      # manual trigger button
+
+permissions:
+  contents: write
+
+jobs:
+  collect-and-preprocess:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies (data job only; full stack would fill the runner disk)
+        run: pip install --no-cache-dir -r requirements-data.txt
+
+      - name: Collect raw data (window extended to today)
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
+          END_DATE: ""   # set below to run date
+        run: |
+          export END_DATE=$(date +%F)
+          python -m src.collect_all
+          python -m src.preprocess
+
+      - name: Commit updated datasets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --cached --quiet && echo "No data changes" || git commit -m "Automated weekly data update"
+          git push

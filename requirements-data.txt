@@ -1,0 +1,10 @@
+# Minimal dependency set for the GitHub Actions weekly data job
+# (src.collect_all + src.preprocess only). Versions match requirements.txt.
+# The full research stack (torch/shap/streamlit/...) is NOT needed here:
+# installing torch==2.8.0 on a Linux runner pulls ~3 GB of CUDA libraries and
+# exhausted the runner disk on 2026-09-18 ("No space left on device").
+numpy==2.2.6
+pandas==2.2.3
+pyarrow==25.0.1
+requests==2.32.5
+yfinance==0.2.66

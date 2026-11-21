@@ -1,0 +1,113 @@
+{
+  "data_version": "prices@2026-10-02 n=3161186",
+  "jpm_file_version": "2a77c3c 2026-10-03T01:20:04+00:00",
+  "coverage": {
+    "membership_intervals": 670,
+    "membership_tickers": 666,
+    "members_in_study_window": 597,
+    "members_without_prices": 51,
+    "active_members_truncated_history": [
+      "AVB",
+      "EA",
+      "EQR"
+    ],
+    "current_members_truncated": [],
+    "post_exit_inactive": [
+      "APC",
+      "CSRA",
+      "INFO",
+      "LEG",
+      "NFX",
+      "SBNY",
+      "STI"
+    ],
+    "active_securities": 1510,
+    "by_universe_active": {
+      "custom": 1,
+      "sp400": 369,
+      "sp500": 582,
+      "sp600": 558
+    }
+  },
+  "cited_runs": {
+    "w10_590_before": {
+      "id": 15,
+      "job": "daily",
+      "tickers": 590,
+      "status": "ok",
+      "total_s": 38.0,
+      "stages": {
+        "market": 12.756,
+        "fetch+prices": 8.984,
+        "features": 14.727,
+        "quotes": 0.875,
+        "cache": 0.189
+      }
+    },
+    "w11_1517_backfill": {
+      "id": 51,
+      "job": "daily",
+      "tickers": 1517,
+      "status": "ok",
+      "total_s": 530.0,
+      "stages": {
+        "market": 1.54,
+        "fetch+prices": 173.243,
+        "features": 353.168,
+        "quotes": 0.986,
+        "cache": 0.442
+      }
+    },
+    "w11_1517_steady": {
+      "id": 52,
+      "job": "daily",
+      "tickers": 1517,
+      "status": "ok",
+      "total_s": 59.5,
+      "stages": {
+        "market": 1.902,
+        "fetch+prices": 19.192,
+        "features": 36.395,
+        "quotes": 1.051,
+        "cache": 0.431
+      }
+    },
+    "w11_590_after": {
+      "id": 58,
+      "job": "daily",
+      "tickers": 590,
+      "status": "ok",
+      "total_s": 25.8,
+      "stages": {
+        "market": 2.556,
+        "fetch+prices": 7.712,
+        "features": 14.451,
+        "quotes": 0.47,
+        "cache": 0.185
+      }
+    },
+    "w12_1510_catchup_6days": {
+      "id": 91,
+      "job": "daily",
+      "tickers": 1510,
+      "status": "ok",
+      "total_s": 84.4,
+      "stages": {
+        "market": 1.459,
+        "fetch+prices": 17.987,
+        "features": 62.701,
+        "quotes": 1.085,
+        "cache": 0.405
+      }
+    }
+  },
+  "tool": {
+    "as_of": "2026-10-02",
+    "quoted": 1493,
+    "anchor_counts": {
+      "garch1d": 1478,
+      "ewma": 15
+    },
+    "ml_reference_count": 496
+  }
+}

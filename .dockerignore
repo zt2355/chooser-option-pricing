@@ -1,0 +1,13 @@
+.git
+.env
+HANDOFF.md
+dist
+reports
+references
+docs/**/*.pdf
+docs/**/*.tex
+docs/**/*.pptx
+**/__pycache__
+**/.DS_Store
+data/cache
+data/wrds_local

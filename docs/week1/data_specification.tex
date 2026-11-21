@@ -1,0 +1,100 @@
+% Week 1 deliverable: Data Requirement Specification
+% Compile: XeLaTeX or pdfLaTeX (English only, no CJK dependency)
+\documentclass[11pt]{article}
+\usepackage[a4paper, margin=2.4cm]{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+\setlist{nosep}
+\usepackage{parskip}
+
+\title{\textbf{Data Requirement Specification}\\
+\large Advanced Chooser Option Pricing Model with Real-World Data \& ML --- Week 1 Deliverable}
+\author{Zhucheng Tong}
+\date{July 2026 \quad (Collection window: 2018-01-01 -- 2024-12-31, daily)}
+
+\begin{document}
+\maketitle
+
+\section{Purpose}
+This document defines the data required to (a) replicate the BSM-based chooser
+option pricing model on JPM, (b) validate it, and (c) supply features for the
+ML volatility/pricing models in Weeks 5--6. Every series below maps to either a
+\textbf{BSM pricing input} ($S_0$, $\sigma$, $r$, $q$, $T$) or an \textbf{ML
+feature} addressing BSM's constant-volatility limitation.
+
+\section{Data Scope}
+
+\subsection{Financial data (underlying asset)}
+\begin{center}
+\small
+\begin{tabular}{p{3.3cm} p{2.5cm} p{3.9cm} p{4.3cm}}
+\toprule
+\textbf{Series} & \textbf{Source} & \textbf{File} & \textbf{Role} \\
+\midrule
+JPM OHLCV + Adj Close & Yahoo Finance (\texttt{yfinance}) & \texttt{jpm\_daily.csv} & $S_0$ (spot); returns $\to$ realized volatility $\sigma$ \\
+JPM dividends & Yahoo Finance & \texttt{jpm\_daily.csv} & Dividend yield $q$; dividend growth feature \\
+JPM recent prices ($\sim$100 sessions) & Alpha Vantage & \texttt{jpm\_daily\_\newline alphavantage.csv} & Cross-validation of Yahoo; real-time backup for Week 7 tool \\
+S\&P 500 (\^{}GSPC) & Yahoo Finance & \texttt{sp500\_daily.csv} & Market-regime context; beta/correlation features \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Macroeconomic data (risk-free rate)}
+\begin{center}
+\small
+\begin{tabular}{p{3.3cm} p{2.5cm} p{3.9cm} p{4.3cm}}
+\toprule
+\textbf{Series} & \textbf{Source} & \textbf{File} & \textbf{Role} \\
+\midrule
+DGS3MO (3M Treasury) & FRED API & \texttt{fred\_rates\_daily.csv} & Risk-free rate $r$, short-dated legs \\
+DGS1 (1Y Treasury) & FRED API & \texttt{fred\_rates\_daily.csv} & Risk-free rate $r$ matching $T_2 = 1$y \\
+DGS10 (10Y Treasury) & FRED API & \texttt{fred\_rates\_daily.csv} & Rate-momentum / curve-level feature \\
+FEDFUNDS (effective FFR, monthly) & FRED API & \texttt{fred\_rates\_daily.csv} & Policy-regime feature \\
+T10Y2Y (10y--2y spread) & FRED API & \texttt{fred\_rates\_daily.csv} & Yield-curve regime feature \\
+\^{}TNX / \^{}IRX & Yahoo Finance & \texttt{treasury\_10y\_\newline yahoo\_daily.csv},\newline \texttt{tbill\_13w\_yahoo\newline \_daily.csv} & Redundant backup for FRED (source cross-check) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Sentiment / volatility data}
+\begin{center}
+\small
+\begin{tabular}{p{3.3cm} p{2.5cm} p{3.9cm} p{4.3cm}}
+\toprule
+\textbf{Series} & \textbf{Source} & \textbf{File} & \textbf{Role} \\
+\midrule
+\^{}VIX (CBOE Volatility Index) & Yahoo Finance & \texttt{vix\_daily.csv} & Market-implied 30d vol; VIX--JPM correlation feature; high-vol regime flag \\
+VIX-derived sentiment scores (0--1) & Derived from \^{}VIX (Week 2) & \texttt{vix\_daily.csv} & Sentiment proxy per mentor guidance (replaces NewsAPI): rolling percentile rank, fear-regime flags, VIX momentum \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Validation benchmark}
+Per mentor guidance, CME transaction prices are \textbf{not} required. Week 4
+validation benchmarks the BSM analytical chooser price against \textbf{Monte
+Carlo simulation} under the same GBM dynamics (convergence check on simulated
+payoffs at the choice date). MC prices are generated in-house from calibrated
+parameters ($S_0$, $\sigma$, $r$, $q$); no additional external data source is
+needed.
+
+\section{Collection Infrastructure}
+\begin{itemize}
+  \item \textbf{Primary feed:} Yahoo Finance via \texttt{yfinance} (no key, no practical rate limit at daily granularity).
+  \item \textbf{Rates feed:} FRED REST API (free key, 120 req/min; 5 series used).
+  \item \textbf{Backup feed:} Alpha Vantage (free tier: 25 req/day, latest $\sim$100 sessions only --- full history is premium, hence backup-only role).
+  \item API keys stored in \texttt{.env}, excluded from version control.
+  \item One-shot pull: \texttt{python -m src.collect\_all}. Automated scheduling via GitHub Actions is a Week 2 deliverable.
+\end{itemize}
+
+\section{Known Data Caveats}
+\begin{enumerate}
+  \item \textbf{FRED missing values}: market holidays are encoded as \texttt{"."} $\to$ parsed to NaN; interpolated in Week 2 cleaning.
+  \item \textbf{Calendar alignment}: FRED uses a business-day calendar (1850 rows) vs.\ the NYSE trading calendar (1760 rows); the Week 2 pipeline aligns all series to the NYSE calendar.
+  \item \textbf{Adjusted vs.\ unadjusted prices}: both retained; returns/volatility computed on adjusted prices, option moneyness on unadjusted.
+  \item \textbf{VIX is index-level (S\&P 500) implied volatility}, used as a market-regime proxy for JPM, not as JPM's own implied vol.
+  \item \textbf{VIX dual role}: VIX serves both as a volatility feature and (per mentor guidance) as the sentiment proxy. To limit information overlap, the raw level is used as the implied-volatility expectation while normalized transforms (percentile rank, z-score, momentum) encode the sentiment state; VIX reflects market-wide, not JPM-specific, sentiment.
+\end{enumerate}
+
+\end{document}

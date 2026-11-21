@@ -1,0 +1,90 @@
+{
+  "days": 1293,
+  "start": "2019-10-17",
+  "end": "2024-12-31",
+  "metrics": {
+    "sigma_ewma": {
+      "MAE": 9.509036688746985,
+      "RMSE": 13.594001860289172,
+      "MedAE": 6.39630483310426,
+      "Bias": -1.3624269349712224,
+      "P95AE": 34.50096387954768,
+      "RegimeWorstMAE": 10.832501273831063,
+      "R2": -1.124682097185906,
+      "Hit10": 0.2266047950502707,
+      "composite": 1.0
+    },
+    "sigma_iv": {
+      "MAE": 5.904527836150889,
+      "RMSE": 8.859362551738696,
+      "MedAE": 4.1820157159468785,
+      "Bias": -1.4246553506670223,
+      "P95AE": 26.53435232301564,
+      "RegimeWorstMAE": 6.3060322087292,
+      "R2": 0.09758925496702475,
+      "Hit10": 0.28692962103634956,
+      "composite": 0.7100744403857371
+    },
+    "sigma_252d": {
+      "MAE": 10.30786143670415,
+      "RMSE": 13.57915350014576,
+      "MedAE": 8.070168830949275,
+      "Bias": 0.5015974719136789,
+      "P95AE": 30.817518418215126,
+      "RegimeWorstMAE": 10.864253113558643,
+      "R2": -1.1200431666111292,
+      "Hit10": 0.19412219644238204,
+      "composite": 0.9571000451498027
+    }
+  },
+  "corr_log_iv_ratio_vs_log_oracle_ratio": 0.7784389021104186,
+  "mechanism": {
+    "corr_if_iv_replaced_by_constant": 0.829691586673071,
+    "R2_ratio_on_logEWMA": 0.688388128996078,
+    "R2_ratio_on_logEWMA_plus_logIV": 0.6889759995168785,
+    "corr_level_iv_vs_oracle": 0.03717471408601463,
+    "mean_sigma": {
+      "iv": 0.2636118874709977,
+      "oracle": 0.27304256616654204,
+      "ewma": 0.2742180015731512
+    },
+    "std_sigma": {
+      "iv": 0.04873501642833842,
+      "oracle": 0.0881644371349395,
+      "ewma": 0.1623921930747192
+    },
+    "anchor_diagnostics": {
+      "const_iv_mean": {
+        "composite": 0.5322490755594257,
+        "MAE": 4.769967506100311
+      },
+      "expanding_rv252": {
+        "composite": 1.346297141257205,
+        "MAE": 10.687248982355511
+      }
+    },
+    "same_window_vs_garch": {
+      "start": "2020-12-23",
+      "end": "2024-12-31",
+      "days": 1011,
+      "sigma_ewma": {
+        "composite": 1.0,
+        "MAE": 6.291934224688293
+      },
+      "sigma_iv": {
+        "composite": 0.5970958165330974,
+        "MAE": 4.204833231592145
+      },
+      "sigma_garch_1d": {
+        "composite": 0.8520935077900306,
+        "MAE": 5.560606790909606
+      },
+      "sigma_garch_1y": {
+        "composite": 0.80414589829106,
+        "MAE": 4.17986613298263
+      }
+    },
+    "reading": "the 0.78 ratio correlation is mechanical (shared -log EWMA); IV's edge is its level, not timing"
+  },
+  "note": "OptionMetrics extract is local-only under the WRDS licence; not in the tool or deliverables"
+}

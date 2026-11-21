@@ -1,0 +1,6 @@
+experiment,before_ms,after_ms,speedup,before_rows,after_rows,tickers,before_ms_extrapolated,before_per_ticker_ms,measured_s,per_ticker_s,w9_serial_extrapolated_s,run_id,rows_prices
+E1_feature_rebuild_jpm,436.217,45.81,9.5,2190.0,40.0,,,,,,,,
+E2_market_state_load,17.858,2.632,6.8,,,,,,,,,,
+E3_universe_quotes,,411.949,5.4,,,578.0,2216.7,3.84,,,,,
+E4_universe_scenarios,,2.531,163.8,,,,414.5,,,,,,
+E5_daily_pipeline_universe,,,69.9,,,590.0,,,38.0,0.064,2654.1,15.0,22878.0

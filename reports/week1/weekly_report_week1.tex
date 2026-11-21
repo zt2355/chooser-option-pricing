@@ -1,0 +1,55 @@
+% Week 1 实验周报 —— 编译方式:XeLaTeX(本地 xelatex 或 Overleaf 设置 Compiler: XeLaTeX)
+\documentclass[11pt]{ctexart}
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\setlist{nosep}
+
+\title{\textbf{Chooser Option 定价项目 —— 第 1 周实验报告}\\
+\large Data Source Design \& Initial Collection}
+\author{佟铸城 (Zhucheng Tong)}
+\date{2026 年 7 月 23 日}
+
+\begin{document}
+\maketitle
+
+\section{本周目标}
+按项目排期完成 Week 1 三项交付物:(1) 数据需求说明文档;(2) 可用的 API 连接脚本;(3) 2018--2024 年初始原始数据集。
+
+\section{完成工作}
+\begin{enumerate}
+  \item \textbf{数据需求说明文档}(\texttt{docs/week1/data\_specification.md}):定义金融、宏观、情绪三类数据的范围与用途,并将每条数据序列映射到 BSM 定价参数($S_0$、$\sigma$、$r$、$q$、$T$)或 ML 特征。
+  \item \textbf{数据采集脚本}(\texttt{src/data\_collection/}):实现三个数据源的采集器,统一入口 \texttt{python -m src.collect\_all}:
+    \begin{itemize}
+      \item Yahoo Finance(主源,无需 key):JPM 日线 OHLCV + 股息、\^{}VIX、\^{}GSPC、\^{}TNX、\^{}IRX;
+      \item FRED API:DGS3MO / DGS1 / DGS10 / FEDFUNDS / T10Y2Y 五条利率序列;
+      \item Alpha Vantage:备用源与连通性验证。
+    \end{itemize}
+  \item \textbf{初始原始数据集}(\texttt{data/raw/},7 个 CSV):JPM 等权益类序列 1760 个交易日(2018-01-02 至 2024-12-30),FRED 利率序列 1850 个观测日。
+\end{enumerate}
+
+\section{实验记录与关键发现}
+\begin{enumerate}
+  \item \textbf{Alpha Vantage 免费额度变化}:实测发现其 \texttt{TIME\_SERIES\_DAILY} 接口的全量历史(\texttt{outputsize=full})已转为付费功能,免费档仅返回最近约 100 个交易日,且限 25 次请求/日。\\
+  \textbf{应对}:调整数据架构 --- 历史数据主源改为 Yahoo Finance,Alpha Vantage 降级为"连通性验证 + 第 7 周实时数据备用源"。
+  \item \textbf{日历对齐问题}:FRED 按工作日日历发布(1850 行,节假日以缺失值占位),Yahoo 按 NYSE 交易日历(1760 行),两者需在第 2 周清洗时统一对齐到 NYSE 交易日历,FRED 缺失值将采用插值处理。
+  \item \textbf{复权与不复权价格}:同时保留 \texttt{Close} 与 \texttt{Adj Close} --- 收益率与波动率基于复权价计算,期权 moneyness 基于不复权价,避免股息调整引入偏差。
+  \item \textbf{数据合理性抽检}:VIX 序列中可辨识 2020 年 3 月(COVID,峰值 82.7)与 2024 年 8 月的高波动区间,与市场事实一致,数据质量初步可信。这些高波动区间将是第 4 周 BSM 失效模式分析的重点样本。
+\end{enumerate}
+
+\section{遇到的问题与待对齐事项}
+\begin{enumerate}
+  \item \textbf{已对齐}:模型验证不使用 CME 成交价,改为蒙特卡洛模拟作为基准 --- 即第 4 周将在相同 GBM 假设下,以 MC 模拟价格对 BSM 解析解做收敛性交叉验证,验证实现正确性;无需额外外部数据源;
+  \item 参考论文《Exploration of JPMorgan Chooser Option Pricing (2021)》原文待提供,第 3 周复现需以其为准。
+\end{enumerate}
+
+\section{下周计划(Week 2:数据预处理与特征工程)}
+\begin{enumerate}
+  \item 缺失值插值、IQR 异常值处理、时间对齐,输出清洗后的结构化数据集(CSV/Parquet);
+  \item 构造 $\geq$10 个特征:滚动波动率(多窗口)、日收益率、股息增长率、VIX--JPM 相关性、利率动量、情绪分(0--1)等;
+  \item 搭建自动化预处理管道,配置 GitHub Actions 定时任务;
+  \item 情绪特征构造:经导师确认以 VIX 作为市场情绪代理(替代 NewsAPI),由 VIX 派生 0--1 情绪分(滚动百分位、恐慌状态标记、动量),并与其波动率角色作区分。
+\end{enumerate}
+
+\end{document}

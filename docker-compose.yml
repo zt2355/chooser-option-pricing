@@ -1,0 +1,90 @@
+# Week 9: online stack — one command brings up the whole tool.
+#
+#   docker compose up -d --build       start everything (first run migrates + backfills)
+#   docker compose logs -f scheduler   watch the daily job
+#   docker compose down                stop (data persists in named volumes)
+#   docker compose down -v             stop and wipe database + cache
+#
+# Open the dashboard at http://localhost:8501
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: chooser
+      POSTGRES_PASSWORD: chooser
+      POSTGRES_DB: chooser
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chooser -d chooser"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # one-shot: create tables and backfill from the shipped data/ files
+  migrate:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://chooser:chooser@postgres:5432/chooser
+      REDIS_URL: redis://redis:6379/0
+    command: sh -c "python -m src.db.migrate && python -m src.db.ingest && python -m src.service.pipeline --dry-run"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  app:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://chooser:chooser@postgres:5432/chooser
+      REDIS_URL: redis://redis:6379/0
+    command: streamlit run app/streamlit_app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true
+    ports:
+      - "8501:8501"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  scheduler:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://chooser:chooser@postgres:5432/chooser
+      REDIS_URL: redis://redis:6379/0
+      PIPELINE_TZ: America/New_York
+      PIPELINE_CRON_HOUR: "17"
+      PIPELINE_CRON_MINUTE: "30"
+      PIPELINE_RUN_ON_START: "0"
+    command: python -m src.service.scheduler
+    # Week 12: the image's default healthcheck probes Streamlit, which this container does
+    # not run (it was permanently "unhealthy"); check the scheduler's own heartbeat file instead
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,sys,time; p='/tmp/scheduler_heartbeat'; sys.exit(0 if os.path.exists(p) and time.time()-os.path.getmtime(p) < 1800 else 1)"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  pgdata:
